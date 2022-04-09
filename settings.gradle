@@ -14,3 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Swan"
 include ':app'
+include ':swan-io-canary'
+include ':swan-android-common'
+include ':swan-android-lib'
+include ':swan-resource-canary:swan-resource-canary-android'

@@ -1,0 +1,10 @@
+[versions]
+compileSdk = "32"
+minSdk = "23"
+targetSdk = "32"
+versionCode = "23"
+versionName = '1.0'
+
+[libraries]
+
+[bundles]
