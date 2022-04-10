@@ -122,7 +122,11 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
 
 
     override fun uninstall() {
-        TODO("Not yet implemented")
+        checkMainThread()
+        uninstallActivityManager?.invoke()
+        uninstallActivityThreadHandlerCallback?.invoke()
+        uninstallActivityManager = null
+        uninstallActivityThreadHandlerCallback = null
     }
 
     /**
