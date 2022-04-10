@@ -2,19 +2,22 @@ package com.bomber.swan.resource.matrix.watcher.android
 
 import android.annotation.SuppressLint
 import android.app.Service
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import com.bomber.swan.resource.matrix.friendly.checkMainThread
 import com.bomber.swan.resource.matrix.watcher.ReachabilityWatcher
 import com.bomber.swan.util.SwanLog
 import java.lang.ref.WeakReference
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Proxy
 import java.util.*
 
 /**
  * @author youngtr
  * @data 2022/4/10
  */
-@SuppressLint("PrivateApi")
+@SuppressLint("PrivateApi", "DiscouragedPrivateApi")
 class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : InstallableWatcher {
 
     private val serviceToBeDestroyed = WeakHashMap<IBinder, WeakReference<Service>>()
@@ -69,7 +72,35 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
             }
 
 
+            swapActivityManager { activityManagerInterface, activityManagerInstance ->
+                uninstallActivityManager = {
+                    swapActivityManager { _, _ ->
+                        activityManagerInstance
+                    }
+                }
 
+                Proxy.newProxyInstance(
+                    activityManagerInterface.classLoader,
+                    arrayOf(activityManagerInterface)
+                ) { _, method, args ->
+                    if (METHOD_SERVICE_DONE_EXECUTING == method.name) {
+                        val token = args!![0] as IBinder
+                        if (serviceToBeDestroyed.containsKey(token)) {
+                            onServiceDestroyed(token)
+                        }
+                    }
+                    try {
+                        if (args == null) {
+                            method.invoke(activityManagerInstance)
+                        } else {
+                            method.invoke(activityManagerInstance, *args)
+                        }
+                    } catch (e: InvocationTargetException) {
+                        throw e.targetException
+                    }
+
+                }
+            }
 
         } catch (ignore: Throwable) {
             SwanLog.d(TAG, "Could not watch destroyed services")
@@ -78,7 +109,29 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
 
     }
 
-    @SuppressLint("DiscouragedPrivateApi")
+    private fun onServiceDestroyed(token: IBinder) {
+        serviceToBeDestroyed.remove(token)?.also { serviceWeakReference ->
+            serviceWeakReference.get()?.let { service ->
+                reachabilityWatcher.expectWeaklyReachable(
+                    service,
+                    "${service::class.java.name} received Service#onDestroy() callback"
+                )
+            }
+        }
+    }
+
+
+    override fun uninstall() {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * service 将要执行了 onDestroy 方法
+     */
+    private fun onServicePreDestroy(token: IBinder, service: Service) {
+        serviceToBeDestroyed[token] = WeakReference(service)
+    }
+
     /**
      * 替换 ActivityThread 中的 mH（Handler）中的 mCallback
      */
@@ -93,15 +146,29 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
         mCallbackField[mH] = swap(mCallback)
     }
 
-    override fun uninstall() {
-        TODO("Not yet implemented")
-    }
+    private fun swapActivityManager(swap: (Class<*>, Any) -> Any) {
+        val singletonClass = Class.forName("android.util.Singleton")
+        val mInstanceField =
+            singletonClass.getDeclaredField("mInstance").apply { isAccessible = true }
 
-    /**
-     * service 将要执行了 onDestroy 方法
-     */
-    private fun onServicePreDestroy(token: IBinder, service: Service) {
-        serviceToBeDestroyed[token] = WeakReference(service)
+        val singletonGetMethod = singletonClass.getDeclaredMethod("get")
+        val (className, fieldName) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            "android.app.ActivityManager" to "IActivityManagerSingleton"
+        } else {
+            "android.app.ActivityManagerNative" to "gDefault"
+        }
+
+        val activityManagerClass = Class.forName(className)
+        val activityManagerSingletonField =
+            activityManagerClass.getDeclaredField(fieldName).apply { isAccessible = true }
+        val activityManagerSingletonInstance = activityManagerSingletonField[activityManagerClass]
+
+        val activityManagerInstance = singletonGetMethod.invoke(activityManagerSingletonField)
+
+        val iActivityManagerInterface = Class.forName("android.app.IActivityManager")
+        mInstanceField[activityManagerSingletonInstance] =
+            swap(iActivityManagerInterface, activityManagerInstance!!)
+
     }
 
     companion object {
@@ -110,3 +177,19 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
         private const val METHOD_SERVICE_DONE_EXECUTING = "serviceDoneExecuting"
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
