@@ -108,6 +108,12 @@ public class SwanLog {
         }
     }
 
+    public static void d(final String tag, OnLogDSL dsl) {
+        if (swanLogImp != null) {
+            swanLogImp.d(tag, dsl.d());
+        }
+    }
+
     public static void printErrStackTrace(String tag, Throwable tr, final String format, final Object... obj) {
         if (swanLogImp != null) {
             swanLogImp.printErrStackTrace(tag, tr, format, obj);
@@ -128,5 +134,9 @@ public class SwanLog {
 
         void printErrStackTrace(String tag, Throwable tr, final String format, final Object... obj);
 
+    }
+
+    public interface OnLogDSL {
+        String d();
     }
 }

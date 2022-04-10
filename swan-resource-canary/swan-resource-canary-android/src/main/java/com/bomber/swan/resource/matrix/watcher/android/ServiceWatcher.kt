@@ -103,7 +103,7 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
             }
 
         } catch (ignore: Throwable) {
-            SwanLog.d(TAG, "Could not watch destroyed services")
+            SwanLog.d(TAG, "Could not watch destroyed services, because $ignore")
 
         }
 
@@ -167,7 +167,7 @@ class ServiceWatcher(private val reachabilityWatcher: ReachabilityWatcher) : Ins
             activityManagerClass.getDeclaredField(fieldName).apply { isAccessible = true }
         val activityManagerSingletonInstance = activityManagerSingletonField[activityManagerClass]
 
-        val activityManagerInstance = singletonGetMethod.invoke(activityManagerSingletonField)
+        val activityManagerInstance = singletonGetMethod.invoke(activityManagerSingletonInstance)
 
         val iActivityManagerInterface = Class.forName("android.app.IActivityManager")
         mInstanceField[activityManagerSingletonInstance] =

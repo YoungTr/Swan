@@ -1,9 +1,10 @@
 package com.bomber.swan
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityMainBinding
+import com.bomber.swan.resource.ResourceActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,9 +15,11 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        binding.sampleText.setOnClickListener {
+            startActivity(Intent(this, ResourceActivity::class.java))
+        }
         // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+//        binding.sampleText.text = stringFromJNI()
     }
 
     /**

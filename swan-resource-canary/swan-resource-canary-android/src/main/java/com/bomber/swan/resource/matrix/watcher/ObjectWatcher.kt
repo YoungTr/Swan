@@ -1,5 +1,6 @@
 package com.bomber.swan.resource.matrix.watcher
 
+import com.bomber.swan.util.Clock
 import com.bomber.swan.util.SwanLog
 import java.lang.ref.ReferenceQueue
 import java.util.*
@@ -131,6 +132,7 @@ class ObjectWatcher constructor(
         val retainedRef = watcherObjects[key]
         if (retainedRef != null) {
             retainedRef.retainedUptimeMillis = clock.uptimeMillis()
+            SwanLog.d(TAG, "find retained reference ${retainedRef.get()}")
             onObjectRetainedListeners.forEach { it.onObjectRetained() }
         }
     }

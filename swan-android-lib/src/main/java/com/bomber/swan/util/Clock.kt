@@ -1,4 +1,4 @@
-package com.bomber.swan.resource.matrix.watcher
+package com.bomber.swan.util
 
 /**
  * @author youngtr
