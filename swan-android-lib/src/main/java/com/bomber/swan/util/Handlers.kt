@@ -1,6 +1,7 @@
 package com.bomber.swan.util
 
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 
 internal val mainHandler by lazy { Handler(Looper.getMainLooper()) }
@@ -17,4 +18,10 @@ internal fun checkNotMainThread() {
     check(!isMainThread) {
         "Should not be called from the main thread"
     }
+}
+
+fun newHandlerThread(name: String, priority: Int): HandlerThread {
+    val handlerThread = HandlerThread(name, priority)
+    handlerThread.start()
+    return handlerThread
 }

@@ -97,6 +97,10 @@ class ObjectWatcher constructor(
 
         watcherObjects[key] = reference
         checkRetainedExecutable.execute {
+//            if (watcherObjects.isEmpty()) {
+//
+//            }
+            SwanLog.d(TAG, "start execute moveToRetainer")
             moveToRetained(key)
         }
 
