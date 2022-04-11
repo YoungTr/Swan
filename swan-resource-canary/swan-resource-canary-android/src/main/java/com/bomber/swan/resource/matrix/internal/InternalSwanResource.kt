@@ -4,13 +4,13 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.os.Handler
+import android.os.SystemClock
 import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 import com.bomber.swan.resource.matrix.dump.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.GcTrigger
-import com.bomber.swan.util.VisibilityTracker
 import com.bomber.swan.util.newHandlerThread
 import com.bomber.swan.util.registerVisibilityListener
 
@@ -66,7 +66,7 @@ object InternalSwanResource : OnObjectRetainedListener {
         // dump process
         heapDumpTrigger = HeapDumpTrigger(
             application, backgroundHandler, AppWatcher.objectWatcher, gcTrigger,
-            configProvider
+            configProvider, clock = { SystemClock.uptimeMillis() }
         )
 
         application.registerVisibilityListener { applicationVisible ->

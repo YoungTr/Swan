@@ -1,6 +1,9 @@
 package com.bomber.swan.resource.matrix.config
 
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
+import com.bomber.swan.resource.matrix.dump.DumpHeapMode
+import com.bomber.swan.resource.matrix.dump.HeapDumper
+import com.bomber.swan.resource.matrix.dump.NormalHeapDumper
 
 data class ResourceConfig(
     /**
@@ -10,7 +13,7 @@ data class ResourceConfig(
      *
      * Defaults to true.
      */
-    val dumpHeap: Boolean = true,
+    val dumpHeapMode: DumpHeapMode = DumpHeapMode.NormalDump,
     /**
      * If [dumpHeapWhenDebugging] is false then LeakCanary will not dump the heap
      * when the debugger is attached. The debugger can create temporary memory leaks (for instance
@@ -133,7 +136,11 @@ data class ResourceConfig(
      * Dumps the Java heap. You may replace this with your own implementation if you wish to
      * change the core heap dumping implementation.
      */
-//        val heapDumper: HeapDumper = AndroidDebugHeapDumper,
+    val heapDumper: HeapDumper = when (dumpHeapMode) {
+        DumpHeapMode.NoDump -> NormalHeapDumper
+        DumpHeapMode.NormalDump -> NormalHeapDumper
+        DumpHeapMode.ForkDump -> NormalHeapDumper
+    },
 
     /**
      * Listeners for LeakCanary events. See [EventListener.Event] for the list of events and
@@ -191,7 +198,7 @@ data class ResourceConfig(
      * ```
      */
     class Builder internal constructor(config: ResourceConfig) {
-        private var dumpHeap = config.dumpHeap
+        private var dumpHeapMode = config.dumpHeapMode
         private var dumpHeapWhenDebugging = config.dumpHeapWhenDebugging
         private var retainedVisibleThreshold = config.retainedVisibleThreshold
 
@@ -205,12 +212,12 @@ data class ResourceConfig(
             config.requestWriteExternalStoragePermission
 
         //            private var leakingObjectFinder = config.leakingObjectFinder
-//            private var heapDumper = config.heapDumper
+        private var heapDumper = config.heapDumper
 //            private var eventListeners = config.eventListeners
 
         /** @see [SwanResource.Config.dumpHeap] */
-        fun dumpHeap(dumpHeap: Boolean) =
-            apply { this.dumpHeap = dumpHeap }
+        fun dumpHeap(dumpHeap: DumpHeapMode) =
+            apply { this.dumpHeapMode = dumpHeap }
 
         /** @see [SwanResource.Config.dumpHeapWhenDebugging] */
         fun dumpHeapWhenDebugging(dumpHeapWhenDebugging: Boolean) =
@@ -262,7 +269,7 @@ data class ResourceConfig(
 
 
         fun build() = ResourceMatrixPlugin.config.copy(
-            dumpHeap = dumpHeap,
+            dumpHeapMode = dumpHeapMode,
             dumpHeapWhenDebugging = dumpHeapWhenDebugging,
             retainedVisibleThreshold = retainedVisibleThreshold,
 //                referenceMatchers = referenceMatchers,
@@ -273,7 +280,7 @@ data class ResourceConfig(
             maxStoredHeapDumps = maxStoredHeapDumps,
             requestWriteExternalStoragePermission = requestWriteExternalStoragePermission,
 //                leakingObjectFinder = leakingObjectFinder,
-//                heapDumper = heapDumper,
+            heapDumper = heapDumper,
 //                eventListeners = eventListeners,
         )
     }
