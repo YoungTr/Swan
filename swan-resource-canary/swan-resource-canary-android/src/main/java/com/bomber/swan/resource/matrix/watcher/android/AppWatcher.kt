@@ -2,6 +2,7 @@ package com.bomber.swan.resource.matrix.watcher.android
 
 import android.app.Application
 import android.os.Handler
+import android.os.SystemClock
 import com.bomber.swan.resource.friendly.checkMainThread
 import com.bomber.swan.resource.matrix.internal.InternalSwanResource
 import com.bomber.swan.resource.matrix.watcher.ObjectWatcher
@@ -35,7 +36,7 @@ object AppWatcher {
     private lateinit var watchersToInstall: List<InstallableWatcher>
 
     val objectWatcher = ObjectWatcher(
-        clock = { System.currentTimeMillis() },
+        clock = { SystemClock.uptimeMillis() },
         checkRetainedExecutable = {
             handler.postDelayed(it, retainedDelayMillis)
         },
