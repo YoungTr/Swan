@@ -20,7 +20,7 @@ internal fun checkNotMainThread() {
     }
 }
 
-fun newHandlerThread(name: String, priority: Int): HandlerThread {
+fun newHandlerThread(name: String, priority: Int = Thread.NORM_PRIORITY): HandlerThread {
     val handlerThread = HandlerThread(name, priority)
     handlerThread.start()
     return handlerThread

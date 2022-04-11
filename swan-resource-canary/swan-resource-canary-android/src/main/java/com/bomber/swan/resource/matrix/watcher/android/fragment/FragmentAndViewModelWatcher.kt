@@ -3,7 +3,7 @@ package com.bomber.swan.resource.matrix.watcher.android.fragment
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import com.bomber.swan.resource.matrix.friendly.noOpDelegate
+import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.watcher.ReachabilityWatcher
 import com.bomber.swan.resource.matrix.watcher.android.InstallableWatcher
 

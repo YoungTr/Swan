@@ -2,7 +2,7 @@ package com.bomber.swan.resource.matrix.watcher.android
 
 import android.app.Activity
 import android.app.Application
-import com.bomber.swan.resource.matrix.friendly.noOpDelegate
+import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.watcher.ReachabilityWatcher
 
 /**

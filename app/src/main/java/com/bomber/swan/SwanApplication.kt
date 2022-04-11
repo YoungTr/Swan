@@ -12,7 +12,7 @@ class SwanApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        val plugin = ResourceMatrixPlugin()
+        val plugin = ResourceMatrixPlugin
         plugin.init(this, DefaultPluginListener)
         plugin.start()
     }

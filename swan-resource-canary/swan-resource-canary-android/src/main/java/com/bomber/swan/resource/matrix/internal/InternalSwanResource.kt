@@ -1,15 +1,27 @@
 package com.bomber.swan.resource.matrix.internal
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Application
+import android.os.Handler
+import com.bomber.swan.resource.friendly.noOpDelegate
+import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
+import com.bomber.swan.resource.matrix.dump.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.GcTrigger
+import com.bomber.swan.util.VisibilityTracker
+import com.bomber.swan.util.newHandlerThread
+import com.bomber.swan.util.registerVisibilityListener
 
 /**
  * @author youngtr
  * @data 2022/4/10
  */
+@SuppressLint("StaticFieldLeak")
 object InternalSwanResource : OnObjectRetainedListener {
+
+    private lateinit var heapDumpTrigger: HeapDumpTrigger
 
     @Suppress("ObjectPropertyName")
     private lateinit var _application: Application
@@ -20,9 +32,21 @@ object InternalSwanResource : OnObjectRetainedListener {
             return _application
         }
 
+    var resumedActivity: Activity? = null
+
     override fun onObjectRetained() {
-        TODO("Not yet implemented")
+        scheduleRetainedObjectCheck()
     }
+
+    private fun scheduleRetainedObjectCheck() {
+        if (this::heapDumpTrigger.isInitialized) {
+            heapDumpTrigger.scheduleRetainedObjectCheck()
+        }
+    }
+
+    @Volatile
+    var applicationVisible = false
+        private set
 
 
     fun init(application: Application) {
@@ -34,13 +58,46 @@ object InternalSwanResource : OnObjectRetainedListener {
 
         val gcTrigger = GcTrigger.Default
 
+        val configProvider = { ResourceMatrixPlugin.config }
+
+        val handlerThread = newHandlerThread(LEAK_CANARY_THREAD_NAME)
+        val backgroundHandler = Handler(handlerThread.looper)
+
+        // dump process
+        heapDumpTrigger = HeapDumpTrigger(
+            application, backgroundHandler, AppWatcher.objectWatcher, gcTrigger,
+            configProvider
+        )
+
+        application.registerVisibilityListener { applicationVisible ->
+            this.applicationVisible = applicationVisible
+            heapDumpTrigger.onApplicationVisibilityChanged(applicationVisible)
+        }
+
+        registerResumedActivityListener(application)
+
+    }
 
 
+    private fun registerResumedActivityListener(application: Application) {
+        application.registerActivityLifecycleCallbacks(object :
+            Application.ActivityLifecycleCallbacks by noOpDelegate() {
+            override fun onActivityResumed(activity: Activity) {
+                resumedActivity = activity
+            }
+
+            override fun onActivityPaused(activity: Activity) {
+                if (resumedActivity == activity) {
+                    resumedActivity = null
+                }
+            }
+        })
     }
 
     private fun checkRunningInDebuggableBuild() {
 
     }
 
+    private const val LEAK_CANARY_THREAD_NAME = "LeakCanary-Heap-Dump"
 
 }

@@ -2,7 +2,7 @@ package com.bomber.swan.resource.matrix.watcher.android
 
 import android.app.Application
 import android.os.Handler
-import com.bomber.swan.resource.matrix.friendly.checkMainThread
+import com.bomber.swan.resource.friendly.checkMainThread
 import com.bomber.swan.resource.matrix.watcher.ObjectWatcher
 import com.bomber.swan.resource.matrix.watcher.ReachabilityWatcher
 import com.bomber.swan.resource.matrix.watcher.android.fragment.FragmentAndViewModelWatcher

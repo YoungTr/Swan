@@ -1,7 +1,7 @@
 @file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER", "NOTHING_TO_INLINE")
 @file:JvmName("swan-object-watcher-android_Friendly")
 
-package com.bomber.swan.resource.matrix.friendly
+package com.bomber.swan.resource.friendly
 
 /**
  * @author youngtr

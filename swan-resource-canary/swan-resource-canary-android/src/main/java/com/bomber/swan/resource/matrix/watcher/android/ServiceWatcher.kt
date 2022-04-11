@@ -5,7 +5,7 @@ import android.app.Service
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
-import com.bomber.swan.resource.matrix.friendly.checkMainThread
+import com.bomber.swan.resource.friendly.checkMainThread
 import com.bomber.swan.resource.matrix.watcher.ReachabilityWatcher
 import com.bomber.swan.util.SwanLog
 import java.lang.ref.WeakReference
