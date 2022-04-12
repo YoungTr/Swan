@@ -146,8 +146,10 @@ class HeapDumpTrigger(
     ) {
 
         SwanLog.d(TAG, "find $retainedReferenceCount retained reference, start dump heap...")
+        val file = File(application.filesDir.absolutePath + File.separator + "heap.href")
+//        configProvider().heapDumper.dumpHeap()
 
-        configProvider().heapDumper.dumpHeap(File(application.filesDir.absolutePath + File.separator + "heap.href"))
+        ForkJvmHeapDumper.dumpHeap(file)
 
     }
 
