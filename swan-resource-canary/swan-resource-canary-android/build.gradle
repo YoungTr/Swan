@@ -4,17 +4,19 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    ndkVersion libs.versions.ndkVersion.get()
 
     defaultConfig {
-        minSdk 23
-        targetSdk 32
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
         externalNativeBuild {
             cmake {
                 cppFlags ""
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
             }
         }
     }

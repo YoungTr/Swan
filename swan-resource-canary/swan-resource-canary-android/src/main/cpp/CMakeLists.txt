@@ -7,7 +7,9 @@ cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
 
-project("resource")
+set(PROJECT_NAME "swan-resource")
+
+project(${PROJECT_NAME})
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -15,7 +17,7 @@ project("resource")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        resource
+        ${PROJECT_NAME}
 
         # Sets the library as a shared library.
         SHARED
@@ -42,7 +44,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        resource
+        ${PROJECT_NAME}
 
         # Links the target library to the log library
         # included in the NDK.

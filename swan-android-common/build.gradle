@@ -5,6 +5,8 @@ plugins {
 
 android {
     compileSdk libs.versions.compileSdk.get().toInteger()
+    ndkVersion libs.versions.ndkVersion.get()
+
 
     defaultConfig {
         minSdk libs.versions.minSdk.get().toInteger()
@@ -15,6 +17,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ""
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
             }
         }
     }

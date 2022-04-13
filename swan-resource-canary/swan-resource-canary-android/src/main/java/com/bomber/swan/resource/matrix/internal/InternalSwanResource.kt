@@ -98,6 +98,6 @@ object InternalSwanResource : OnObjectRetainedListener {
 
     }
 
-    private const val LEAK_CANARY_THREAD_NAME = "LeakCanary-Heap-Dump"
+    private const val LEAK_CANARY_THREAD_NAME = "Resource-Heap-Dump"
 
 }
