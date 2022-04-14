@@ -31,9 +31,9 @@ int initialize() {
     sn_dump_symbols_loaded = 1;
 
     if (sn_android_api_level >= __ANDROID_API_R__)
-        libart = sn_dl_create(SWAN_UTIL_LIBART_APEX_30);
+        libart = sn_dl_create(SWAN_UTIL_LIBART_APEX_30);     // android 11
     else if (sn_android_api_level == __ANDROID_API_Q__)
-        libart = sn_dl_create(SWAN_UTIL_LIBART_APEX_29);
+        libart = sn_dl_create(SWAN_UTIL_LIBART_APEX_29);     // android 10
 
     if (NULL == libart && NULL == (libart = sn_dl_create(SWAN_UTIL_LIBART))) goto end;
 
