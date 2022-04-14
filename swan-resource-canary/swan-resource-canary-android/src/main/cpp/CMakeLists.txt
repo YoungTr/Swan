@@ -11,6 +11,12 @@ set(PROJECT_NAME "swan-resource")
 
 project(${PROJECT_NAME})
 
+file(GLOB SWAN_SRC
+        common/*.c
+        dl/*.c
+        dlfcn/*.c
+        resource.cpp)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -23,8 +29,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        resource.cpp
-        dlfcn/self_dlfcn.c)
+        ${SWAN_SRC})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -37,6 +42,11 @@ find_library( # Sets the name of the path variable.
 
         # Specifies the name of the NDK library that
         # you want CMake to locate.
+        log)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+        common
+        dl
         log)
 
 # Specifies libraries CMake should link to your target library. You

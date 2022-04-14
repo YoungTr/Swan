@@ -17,7 +17,7 @@ object ForkJvmHeapDumper : HeapDumper {
         System.loadLibrary("swan-resource")
         val success = initializedNative()
         SwanLog.d(TAG, "loadLibrary success: $success")
-        return success == 1
+        return success == 0
     }
 
     override fun dumpHeap(heapDumpFile: File) {

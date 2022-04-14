@@ -31,7 +31,7 @@ static libart_dbg_suspend_t libart_dbg_suspend = NULL;
 static libart_dbg_resume_t libart_dbg_resume = NULL;
 
 
-int initialize();
+int initialized();
 
 void *self_dlopen(const char *, int);
 

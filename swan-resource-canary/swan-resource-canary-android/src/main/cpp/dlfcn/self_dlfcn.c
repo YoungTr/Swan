@@ -5,21 +5,21 @@
 #include <dlfcn.h>
 #include "self_dlfcn.h"
 #include <pthread.h>
-#include "../log/log.h"
-#include "../log/scheck.h"
+#include "log.h"
+#include "scheck.h"
 
 static pthread_once_t once_control = PTHREAD_ONCE_INIT;
 int android_api_;
 int init_done = INIT_DLF_FAILED;
 
-void init_api() {
+void init_api1() {
     android_api_ = android_get_device_api_level();
     LOGD("android_api_ = %d", android_api_);
 }
 
 
 void *self_dlopen(const char *lib_name, int flag) {
-    pthread_once(&once_control, init_api);
+    pthread_once(&once_control, init_api1);
     if (android_api_ < __ANDROID_API_N__) {
         return dlopen(lib_name, flag);
     }
@@ -44,7 +44,7 @@ void self_dlclose(void *handler) {
     dlclose(handler);
 }
 
-int initialize() {
+int initialized() {
     if (init_done) return 1;
     void *handler;
     if ((handler = self_dlopen(UTIL_LIBART, RTLD_NOW)) == NULL) {
