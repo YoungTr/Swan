@@ -1,6 +1,7 @@
-package com.bomber.swan.resource.matrix.dump
+package com.bomber.swan.resource.matrix.dumper
 
 import android.annotation.SuppressLint
+import android.os.Debug
 import com.bomber.swan.util.SwanLog
 import java.io.File
 
@@ -22,16 +23,21 @@ object ForkJvmHeapDumper : HeapDumper {
 
     override fun dumpHeap(heapDumpFile: File) {
         if (initialized) {
-            suspendAndFork(60)
-            SwanLog.d(TAG, "after suspend")
+            when (val pid = suspendAndFork(60)) {
+                0 -> Debug.dumpHprofData(heapDumpFile.absolutePath)
+                -1 -> SwanLog.d(TAG, "Can't fork child dump process")
+                else -> resumeAndWait(pid)
+            }
+        } else {
+            SwanLog.d(TAG, "Fork init failed, not to dump")
         }
     }
 }
 
 private external fun initializedNative(): Int
 
-private external fun suspendAndFork(wait: Long)
+private external fun suspendAndFork(wait: Long): Int
 
-private external fun resumeAndWait(pid: Int)
+private external fun resumeAndWait(pid: Int): Int
 
 private const val TAG = "Swan.ForkJvmHeapDumper"

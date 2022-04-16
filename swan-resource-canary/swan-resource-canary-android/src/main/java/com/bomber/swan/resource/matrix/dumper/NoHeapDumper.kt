@@ -1,4 +1,4 @@
-package com.bomber.swan.resource.matrix.dump
+package com.bomber.swan.resource.matrix.dumper
 
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.SwanLog

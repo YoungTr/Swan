@@ -1,4 +1,4 @@
-package com.bomber.swan.resource.matrix.dump
+package com.bomber.swan.resource.matrix.dumper
 
 sealed class DumpHeapMode {
     object NoDump : DumpHeapMode()

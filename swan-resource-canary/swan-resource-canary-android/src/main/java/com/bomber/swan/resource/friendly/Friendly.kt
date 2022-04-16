@@ -14,3 +14,6 @@ internal inline val mainHandler
 internal inline fun checkMainThread() = com.bomber.swan.util.checkMainThread()
 
 internal inline fun <reified T : Any> noOpDelegate(): T = com.bomber.swan.util.noOpDelegate()
+
+internal inline fun measureDurationMillis(block: () -> Unit) =
+    com.bomber.swan.util.measureDurationMillis(block)

@@ -42,6 +42,8 @@ int initialize() {
     if (NULL == (sn_trace_libart_dbg_resume = sn_dl_sym(libart, SWAN_UTIL_LIBART_DBG_RESUME)))
         goto end;
 
+    // todo android 11
+
     sn_dump_symbols_status = 0;
     end:
     if (NULL != libart) sn_dl_destroy(&libart);

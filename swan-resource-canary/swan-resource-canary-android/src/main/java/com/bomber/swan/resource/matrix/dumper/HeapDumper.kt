@@ -1,4 +1,4 @@
-package com.bomber.swan.resource.matrix.dump
+package com.bomber.swan.resource.matrix.dumper
 
 import java.io.File
 

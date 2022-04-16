@@ -1,10 +1,10 @@
 package com.bomber.swan
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityMainBinding
-import com.bomber.swan.resource.matrix.dump.ForkJvmHeapDumper
-import java.io.File
+import com.bomber.swan.resource.ResourceActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,9 +16,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.sampleText.setOnClickListener {
-//            startActivity(Intent(this, ResourceActivity::class.java))
-            val file = File(application.filesDir.absolutePath + File.separator + "heap.href")
-            ForkJvmHeapDumper.dumpHeap(file)
+            startActivity(Intent(this, ResourceActivity::class.java))
         }
         // Example of a call to a native method
 //        binding.sampleText.text = stringFromJNI()

@@ -3,11 +3,12 @@ package com.bomber.swan.resource.matrix.internal
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Handler
 import android.os.SystemClock
 import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
-import com.bomber.swan.resource.matrix.dump.HeapDumpTrigger
+import com.bomber.swan.resource.matrix.dumper.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.GcTrigger
@@ -19,7 +20,7 @@ import com.bomber.swan.util.registerVisibilityListener
  * @data 2022/4/10
  */
 @SuppressLint("StaticFieldLeak")
-object InternalSwanResource : OnObjectRetainedListener {
+internal object InternalSwanResource : OnObjectRetainedListener {
 
     private lateinit var heapDumpTrigger: HeapDumpTrigger
 
@@ -78,6 +79,15 @@ object InternalSwanResource : OnObjectRetainedListener {
 
     }
 
+
+    fun createLeakDirectoryProvider(context: Context): LeakDirectoryProvider {
+        val appContext = context.applicationContext
+        return LeakDirectoryProvider(appContext, {
+            ResourceMatrixPlugin.config.maxStoredHeapDumps
+        }, {
+            ResourceMatrixPlugin.config.requestWriteExternalStoragePermission
+        })
+    }
 
     private fun registerResumedActivityListener(application: Application) {
         application.registerActivityLifecycleCallbacks(object :

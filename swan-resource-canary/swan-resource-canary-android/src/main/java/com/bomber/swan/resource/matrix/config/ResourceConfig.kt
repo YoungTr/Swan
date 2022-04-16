@@ -1,10 +1,10 @@
 package com.bomber.swan.resource.matrix.config
 
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
-import com.bomber.swan.resource.matrix.dump.DumpHeapMode
-import com.bomber.swan.resource.matrix.dump.HeapDumper
-import com.bomber.swan.resource.matrix.dump.NoHeapDumper
-import com.bomber.swan.resource.matrix.dump.NormalHeapDumper
+import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
+import com.bomber.swan.resource.matrix.dumper.HeapDumper
+import com.bomber.swan.resource.matrix.dumper.NoHeapDumper
+import com.bomber.swan.resource.matrix.dumper.NormalHeapDumper
 
 data class ResourceConfig(
     /**
@@ -14,7 +14,7 @@ data class ResourceConfig(
      *
      * Defaults to true.
      */
-    val dumpHeapMode: DumpHeapMode = DumpHeapMode.NoDump,
+    val dumpHeapMode: DumpHeapMode = DumpHeapMode.ForkDump,
     /**
      * If [dumpHeapWhenDebugging] is false then LeakCanary will not dump the heap
      * when the debugger is attached. The debugger can create temporary memory leaks (for instance

@@ -1,14 +1,16 @@
-package com.bomber.swan.resource.matrix.dump
+package com.bomber.swan.resource.matrix.dumper
 
 import android.app.Application
 import android.os.Handler
+import com.bomber.swan.resource.friendly.measureDurationMillis
 import com.bomber.swan.resource.matrix.config.ResourceConfig
+import com.bomber.swan.resource.matrix.internal.InternalSwanResource
+import com.bomber.swan.resource.matrix.watcher.KeyedWeakReference
 import com.bomber.swan.resource.matrix.watcher.ObjectWatcher
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.Clock
 import com.bomber.swan.util.GcTrigger
 import com.bomber.swan.util.SwanLog
-import java.io.File
 
 class HeapDumpTrigger(
     private val application: Application,
@@ -146,10 +148,36 @@ class HeapDumpTrigger(
     ) {
 
         SwanLog.d(TAG, "find $retainedReferenceCount retained reference, start dump heap...")
-        val file = File(application.filesDir.absolutePath + File.separator + "heap.href")
-//        configProvider().heapDumper.dumpHeap()
+        val directoryProvider =
+            InternalSwanResource.createLeakDirectoryProvider(application)
+        val newHeapFile = directoryProvider.newHeapDumpFile()
+        SwanLog.d(TAG, "newHeapFile: $newHeapFile")
+        val durationMills: Long
+        try {
+            if (newHeapFile == null) {
+                throw RuntimeException("Could not create heap dump file")
+            }
 
-        ForkJvmHeapDumper.dumpHeap(file)
+            val heapDumpUptimeMillis = clock.uptimeMillis()
+            KeyedWeakReference.heapDumpUptimeMillis = heapDumpUptimeMillis
+            durationMills = measureDurationMillis {
+                configProvider().heapDumper.dumpHeap(newHeapFile)
+            }
+
+            if (newHeapFile.length() == 0L) {
+                throw java.lang.RuntimeException("Dumped heap file is 0 byte length")
+            }
+            lastDisplayedRetainedObjectCount = 0
+            lastHeapDumpUptimeMillis = clock.uptimeMillis()
+            objectWatcher.clearObjectsWatchedBefore(heapDumpUptimeMillis)
+            SwanLog.d(TAG, "dump heap cast $durationMills ms")
+            // waiting to analyse
+        } catch (throwable: Throwable) {
+            if (retry) {
+                scheduleRetainedObjectCheck(WAIT_AFTER_DUMP_FAILED_MILLIS)
+            }
+            return
+        }
 
     }
 
