@@ -9,10 +9,25 @@ ndkVersion = '21.4.7075529'
 kotlinCompiler = "1.4.21"
 kotlinLib = "1.3.72"
 
+workManager = "2.7.0"
+
+sharkVersion = "2.8.1"
+
+
 [libraries]
 androidPlugin = { module = "com.android.tools.build:gradle", version = "4.2.2" }
 kotlinPlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinCompiler" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinLib" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinLib" }
 
+androidX-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workManager" }
+androidX-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "workManager" }
+
+shark-shark = { module = "com.squareup.leakcanary:shark", version.ref = "sharkVersion" }
+shark-hprof = { module = "com.squareup.leakcanary:shark-hprof", version.ref = "sharkVersion" }
+shark-graph = { module = "com.squareup.leakcanary:shark-graph", version.ref = "sharkVersion" }
+shark-android = { module = "com.squareup.leakcanary:shark-android", version.ref = "sharkVersion" }
+
 [bundles]
+
+sharks = ["shark-shark", "shark-hprof", "shark-graph", "shark-android"]

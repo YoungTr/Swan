@@ -172,6 +172,7 @@ class HeapDumpTrigger(
             objectWatcher.clearObjectsWatchedBefore(heapDumpUptimeMillis)
             SwanLog.d(TAG, "dump heap cast $durationMills ms")
             // waiting to analyse
+//            InternalSwanResource.anayli
         } catch (throwable: Throwable) {
             if (retry) {
                 scheduleRetainedObjectCheck(WAIT_AFTER_DUMP_FAILED_MILLIS)

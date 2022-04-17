@@ -53,4 +53,7 @@ dependencies {
 
     api project(':swan-android-lib')
     implementation libs.kotlin.stdlib
+    implementation libs.androidX.work.multiprocess
+    implementation libs.androidX.work.runtime
+    implementation libs.bundles.sharks
 }

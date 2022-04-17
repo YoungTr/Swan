@@ -5,6 +5,7 @@ import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
 import com.bomber.swan.resource.matrix.dumper.HeapDumper
 import com.bomber.swan.resource.matrix.dumper.NoHeapDumper
 import com.bomber.swan.resource.matrix.dumper.NormalHeapDumper
+import shark.*
 
 data class ResourceConfig(
     /**
@@ -53,7 +54,7 @@ data class ResourceConfig(
      *
      * Defaults to [AndroidReferenceMatchers.appDefaults]
      */
-//        val referenceMatchers: List<ReferenceMatcher> = AndroidReferenceMatchers.appDefaults,
+    val referenceMatchers: List<ReferenceMatcher> = AndroidReferenceMatchers.appDefaults,
 
     /**
      * List of [ObjectInspector] that provide LeakCanary with insights about objects found in the
@@ -62,7 +63,7 @@ data class ResourceConfig(
      *
      * Defaults to [AndroidObjectInspectors.appDefaults]
      */
-//        val objectInspectors: List<ObjectInspector> = AndroidObjectInspectors.appDefaults,
+    val objectInspectors: List<ObjectInspector> = AndroidObjectInspectors.appDefaults,
 
 
     /**
@@ -71,7 +72,7 @@ data class ResourceConfig(
      *
      * Defaults to [AndroidMetadataExtractor]
      */
-//        val metadataExtractor: MetadataExtractor = AndroidMetadataExtractor,
+    val metadataExtractor: MetadataExtractor = AndroidMetadataExtractor,
 
     /**
      * Whether to compute the retained heap size, which is the total number of bytes in memory that
@@ -131,7 +132,7 @@ data class ResourceConfig(
      * )
      * ```
      */
-//        val leakingObjectFinder: LeakingObjectFinder = KeyedWeakReferenceFinder,
+    val leakingObjectFinder: LeakingObjectFinder = KeyedWeakReferenceFinder,
 
     /**
      * Dumps the Java heap. You may replace this with your own implementation if you wish to
@@ -203,16 +204,17 @@ data class ResourceConfig(
         private var dumpHeapWhenDebugging = config.dumpHeapWhenDebugging
         private var retainedVisibleThreshold = config.retainedVisibleThreshold
 
-        //            private var referenceMatchers = config.referenceMatchers
-//            private var objectInspectors = config.objectInspectors
-//            private var onHeapAnalyzedListener = config.onHeapAnalyzedListener
-//            private var metadataExtractor = config.metadataExtractor
+        private var referenceMatchers = config.referenceMatchers
+        private var objectInspectors = config.objectInspectors
+
+        //            private var onHeapAnalyzedListener = config.onHeapAnalyzedListener
+        private var metadataExtractor = config.metadataExtractor
         private var computeRetainedHeapSize = config.computeRetainedHeapSize
         private var maxStoredHeapDumps = config.maxStoredHeapDumps
         private var requestWriteExternalStoragePermission =
             config.requestWriteExternalStoragePermission
 
-        //            private var leakingObjectFinder = config.leakingObjectFinder
+        private var leakingObjectFinder = config.leakingObjectFinder
         private var heapDumper = config.heapDumper
 //            private var eventListeners = config.eventListeners
 
@@ -229,17 +231,17 @@ data class ResourceConfig(
             apply { this.retainedVisibleThreshold = retainedVisibleThreshold }
 
         /** @see [SwanResource.Config.referenceMatchers] */
-//            fun referenceMatchers(referenceMatchers: List<ReferenceMatcher>) =
-//                apply { this.referenceMatchers = referenceMatchers }
+        fun referenceMatchers(referenceMatchers: List<ReferenceMatcher>) =
+            apply { this.referenceMatchers = referenceMatchers }
 
         /** @see [SwanResource.Config.objectInspectors] */
-//            fun objectInspectors(objectInspectors: List<ObjectInspector>) =
-//                apply { this.objectInspectors = objectInspectors }
+        fun objectInspectors(objectInspectors: List<ObjectInspector>) =
+            apply { this.objectInspectors = objectInspectors }
 
 
-//            /** @see [SwanResource.Config.metadataExtractor] */
-//            fun metadataExtractor(metadataExtractor: MetadataExtractor) =
-//                apply { this.metadataExtractor = metadataExtractor }
+        //            /** @see [SwanResource.Config.metadataExtractor] */
+        fun metadataExtractor(metadataExtractor: MetadataExtractor) =
+            apply { this.metadataExtractor = metadataExtractor }
 
         /** @see [SwanResource.Config.computeRetainedHeapSize] */
         fun computeRetainedHeapSize(computeRetainedHeapSize: Boolean) =
@@ -257,8 +259,8 @@ data class ResourceConfig(
             }
 
         /** @see [SwanResource.Config.leakingObjectFinder] */
-//            fun leakingObjectFinder(leakingObjectFinder: LeakingObjectFinder) =
-//                apply { this.leakingObjectFinder = leakingObjectFinder }
+        fun leakingObjectFinder(leakingObjectFinder: LeakingObjectFinder) =
+            apply { this.leakingObjectFinder = leakingObjectFinder }
 
         /** @see [SwanResource.Config.heapDumper] */
 //            fun heapDumper(heapDumper: HeapDumper) =
@@ -273,14 +275,14 @@ data class ResourceConfig(
             dumpHeapMode = dumpHeapMode,
             dumpHeapWhenDebugging = dumpHeapWhenDebugging,
             retainedVisibleThreshold = retainedVisibleThreshold,
-//                referenceMatchers = referenceMatchers,
-//                objectInspectors = objectInspectors,
+            referenceMatchers = referenceMatchers,
+            objectInspectors = objectInspectors,
 //                onHeapAnalyzedListener = onHeapAnalyzedListener,
-//                metadataExtractor = metadataExtractor,
+            metadataExtractor = metadataExtractor,
             computeRetainedHeapSize = computeRetainedHeapSize,
             maxStoredHeapDumps = maxStoredHeapDumps,
             requestWriteExternalStoragePermission = requestWriteExternalStoragePermission,
-//                leakingObjectFinder = leakingObjectFinder,
+            leakingObjectFinder = leakingObjectFinder,
             heapDumper = heapDumper,
 //                eventListeners = eventListeners,
         )

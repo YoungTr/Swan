@@ -20,7 +20,6 @@ object ResourceMatrixPlugin : Plugin() {
             val previousConfig = field
             field = newConfig
             logConfigChange(previousConfig, newConfig)
-//            HeapDumpControl.updateICanHasHeap()
         }
 
     override fun init(application: Application, pluginListener: PluginListener) {
