@@ -18,3 +18,13 @@ include ':swan-io-canary'
 include ':swan-android-common'
 include ':swan-android-lib'
 include ':swan-resource-canary:swan-resource-canary-android'
+
+// third libs
+include ':swan-third-libs:shark-libs:shark'
+include ':swan-third-libs:shark-libs:shark-android'
+include ':swan-third-libs:shark-libs:shark-cli'
+include ':swan-third-libs:shark-libs:shark-graph'
+include ':swan-third-libs:shark-libs:shark-hprof'
+include ':swan-third-libs:shark-libs:shark-hprof-test'
+include ':swan-third-libs:shark-libs:shark-test'
+include ':swan-third-libs:shark-libs:shark-log'

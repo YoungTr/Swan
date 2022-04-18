@@ -1,0 +1,18 @@
+plugins {
+  id("org.jetbrains.kotlin.jvm")
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+  api project(':swan-third-libs:shark-libs:shark-hprof')
+
+  implementation libs.kotlin.stdlib
+  implementation libs.okio2
+
+  testImplementation libs.assertjCore
+  testImplementation libs.junit
+  testImplementation project(':swan-third-libs:shark-libs:shark-test')
+  testImplementation project(':swan-third-libs:shark-libs:shark-hprof-test')
+}

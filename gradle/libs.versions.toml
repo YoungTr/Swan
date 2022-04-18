@@ -28,6 +28,19 @@ shark-hprof = { module = "com.squareup.leakcanary:shark-hprof", version.ref = "s
 shark-graph = { module = "com.squareup.leakcanary:shark-graph", version.ref = "sharkVersion" }
 shark-android = { module = "com.squareup.leakcanary:shark-android", version.ref = "sharkVersion" }
 
+okio2 = { module = "com.squareup.okio:okio", version = "2.2.2" }
+okio1 = { module = "com.squareup.okio:okio", version = "1.14.0" }
+
+assertjCore = { module = "org.assertj:assertj-core", version = "3.9.1" }
+junit = { module = "junit:junit", version = "4.12" }
+kotlinStatistics = { module = "org.nield:kotlin-statistics", version = "1.2.1" }
+mockito = { module = "org.mockito:mockito-core", version = "3.5.10" }
+mockitoKotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version = "2.2.0" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.0-alpha-3" }
+clikt = { module = "com.github.ajalt:clikt", version = "2.3.0" }
+jline = { module = "jline:jline", version = "2.14.6" }
+
+
 [bundles]
 
 sharks = ["shark-shark", "shark-hprof", "shark-graph", "shark-android"]
