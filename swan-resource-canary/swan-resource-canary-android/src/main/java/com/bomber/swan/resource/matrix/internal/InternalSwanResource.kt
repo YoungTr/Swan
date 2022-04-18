@@ -7,13 +7,13 @@ import android.content.Context
 import android.os.Handler
 import android.os.SystemClock
 import com.bomber.swan.resource.friendly.noOpDelegate
+import com.bomber.swan.resource.matrix.EventListener.Event.HeapDump
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
+import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
 import com.bomber.swan.resource.matrix.dumper.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
-import com.bomber.swan.util.GcTrigger
-import com.bomber.swan.util.newHandlerThread
-import com.bomber.swan.util.registerVisibilityListener
+import com.bomber.swan.util.*
 
 /**
  * @author youngtr
@@ -21,6 +21,8 @@ import com.bomber.swan.util.registerVisibilityListener
  */
 @SuppressLint("StaticFieldLeak")
 internal object InternalSwanResource : OnObjectRetainedListener {
+
+    private const val TAG = "Swan.Internal"
 
     private lateinit var heapDumpTrigger: HeapDumpTrigger
 
@@ -106,6 +108,14 @@ internal object InternalSwanResource : OnObjectRetainedListener {
 
     private fun checkRunningInDebuggableBuild() {
 
+    }
+
+    fun analyzeHeap(heapDump: HeapDump) {
+        Global.globalHandler.post {
+            AndroidDebugHeapAnalyzer.runAnalysisBlocking(heapDump) { process ->
+                SwanLog.d(TAG, "process: ${process.progressPercent}")
+            }
+        }
     }
 
     private const val LEAK_CANARY_THREAD_NAME = "Resource-Heap-Dump"

@@ -3,6 +3,7 @@ package com.bomber.swan.resource.matrix.dumper
 import android.app.Application
 import android.os.Handler
 import com.bomber.swan.resource.friendly.measureDurationMillis
+import com.bomber.swan.resource.matrix.EventListener
 import com.bomber.swan.resource.matrix.config.ResourceConfig
 import com.bomber.swan.resource.matrix.internal.InternalSwanResource
 import com.bomber.swan.resource.matrix.watcher.KeyedWeakReference
@@ -11,6 +12,7 @@ import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.Clock
 import com.bomber.swan.util.GcTrigger
 import com.bomber.swan.util.SwanLog
+import java.util.*
 
 class HeapDumpTrigger(
     private val application: Application,
@@ -172,7 +174,14 @@ class HeapDumpTrigger(
             objectWatcher.clearObjectsWatchedBefore(heapDumpUptimeMillis)
             SwanLog.d(TAG, "dump heap cast $durationMills ms")
             // waiting to analyse
-//            InternalSwanResource.anayli
+            InternalSwanResource.analyzeHeap(
+                EventListener.Event.HeapDump(
+                    UUID.randomUUID().toString(),
+                    newHeapFile,
+                    durationMills,
+                    reason = "analyzer"
+                )
+            )
         } catch (throwable: Throwable) {
             if (retry) {
                 scheduleRetainedObjectCheck(WAIT_AFTER_DUMP_FAILED_MILLIS)

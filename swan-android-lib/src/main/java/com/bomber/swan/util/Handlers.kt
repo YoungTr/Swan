@@ -25,3 +25,12 @@ fun newHandlerThread(name: String, priority: Int = Thread.NORM_PRIORITY): Handle
     handlerThread.start()
     return handlerThread
 }
+
+object Global {
+    val globalHandler: Handler
+        get() {
+            val handlerThread = newHandlerThread("global")
+            handlerThread.start()
+            return Handler(handlerThread.looper)
+        }
+}

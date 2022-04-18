@@ -8,8 +8,8 @@ import com.bomber.swan.databinding.ActivityMainBinding
 import com.bomber.swan.resource.ResourceActivity
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
-import shark.HprofHeader
-import shark.StreamingHprofReader
+import shark.HeapAnalyzer
+import shark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -33,15 +33,46 @@ class MainActivity : AppCompatActivity() {
 
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-17_20-32-25_885.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-18_11-26-35_355.hprof")
 
 
                 backgroundHandler.post {
-                    val hprofHeader = HprofHeader.parseHeaderOf(hprofFile)
-                    SwanLog.d("MainActivity", "time: ${hprofHeader.heapDumpTimestamp}")
+//                    AndroidDebugHeapAnalyzer.runAnalysisBlocking(
+//                        HeapDump(
+//                            UUID.randomUUID().toString(),
+//                            hprofFile,
+//                            System.currentTimeMillis(),
+//                            reason = "analyzer"
+//                        )
+//                    ) { process ->
+//                        SwanLog.d("MainActivity", "process: ${process.progressPercent}")
+//
+//                    }
 
-                    val streamingHprofReader = StreamingHprofReader.readerFor(hprofFile)
-                    streamingHprofReader.readRecords()
+
+                    val heapGraph = hprofFile.openHeapGraph()
+                    heapGraph.use { graph ->
+                        val ACTIVITY_CLASS = "android.app.Activity"
+                        val DESTROYED_FIELD_NAME = "mDestroyed"
+                        val activityHeapClass = graph.findClassByName(ACTIVITY_CLASS)
+                        for (instance in graph.instances) {
+                            if (instance.isPrimitiveWrapper) continue
+                            if (instance.instanceClassName.endsWith("ResourceActivity")) {
+                                SwanLog.d(TAG, instance.instanceClassName)
+
+                                val analyzer = HeapAnalyzer { step ->
+                                    SwanLog.d(TAG, "step: ${step.name}")
+                                }
+
+
+
+                            }
+
+                        }
+
+                        SwanLog.d(TAG, "finished")
+
+                    }
 
 
                 }
@@ -65,3 +96,5 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
+private const val TAG = "Swan.MainActivity"

@@ -5,6 +5,7 @@ import com.bomber.swan.resource.matrix.EventListener.Event.*
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 import com.bomber.swan.resource.matrix.internal.LeakDirectoryProvider
+import com.bomber.swan.util.SwanLog
 import shark.*
 import shark.HprofHeapGraph.Companion.openHeapGraph
 import shark.OnAnalysisProgressListener.Step.PARSING_HEAP_DUMP
@@ -15,8 +16,9 @@ import java.io.IOException
  * @author youngtr
  * @data 2022/4/17
  */
-internal object AndroidDebugHeapAnalyzer {
+object AndroidDebugHeapAnalyzer {
 
+    private const val TAG = "Swan.HeapAnalyzer"
     private const val PROGUARD_MAPPING_FILE_NAME = "resourceCanaryObfuscationMapping.txt"
 
     private val application = ResourceMatrixPlugin.getApplication()
@@ -34,6 +36,9 @@ internal object AndroidDebugHeapAnalyzer {
         val heapDumpFile = heapDumped.file
         val heapDumpDurationMillis = heapDumped.durationMillis
         val heapDumpReason = heapDumped.reason
+
+        SwanLog.d(TAG, "runAnalysisBlocking")
+
 
         val heapAnalysis = if (heapDumpFile.exists()) {
             analyzeHeap(heapDumpFile, processListener, isCanceled)
@@ -139,16 +144,19 @@ internal object AndroidDebugHeapAnalyzer {
             )
         }
 
+        SwanLog.d(TAG, "graph: ${closeableGraph.instanceCount}")
+
         return closeableGraph
             .use { graph ->
                 val result = heapAnalyzer.analyze(
                     heapDumpFile = heapDumpFile,
                     graph = graph,
                     leakingObjectFinder = config.leakingObjectFinder,
-                    referenceMatchers = config.referenceMatchers,
                     objectInspectors = config.objectInspectors,
-                    metadataExtractor = config.metadataExtractor
                 )
+
+                SwanLog.d(TAG, "result: $result")
+
                 if (result is HeapAnalysisSuccess) {
                     val lruCacheStats = (graph as HprofHeapGraph).lruCacheStats()
                     val randomAccessStats =
