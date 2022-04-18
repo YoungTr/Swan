@@ -8,9 +8,11 @@ import com.bomber.swan.databinding.ActivityMainBinding
 import com.bomber.swan.resource.ResourceActivity
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
+import shark.AndroidReferenceMatchers
 import shark.HeapAnalyzer
 import shark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,23 +35,10 @@ class MainActivity : AppCompatActivity() {
 
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-18_11-26-35_355.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-18_22-19-54_681.hprof")
 
 
                 backgroundHandler.post {
-//                    AndroidDebugHeapAnalyzer.runAnalysisBlocking(
-//                        HeapDump(
-//                            UUID.randomUUID().toString(),
-//                            hprofFile,
-//                            System.currentTimeMillis(),
-//                            reason = "analyzer"
-//                        )
-//                    ) { process ->
-//                        SwanLog.d("MainActivity", "process: ${process.progressPercent}")
-//
-//                    }
-
-
                     val heapGraph = hprofFile.openHeapGraph()
                     heapGraph.use { graph ->
                         val ACTIVITY_CLASS = "android.app.Activity"
@@ -60,10 +49,34 @@ class MainActivity : AppCompatActivity() {
                             if (instance.instanceClassName.endsWith("ResourceActivity")) {
                                 SwanLog.d(TAG, instance.instanceClassName)
 
-                                val analyzer = HeapAnalyzer { step ->
-                                    SwanLog.d(TAG, "step: ${step.name}")
+
+                                val mLeakingObjectIds = mutableSetOf<Long>()
+                                mLeakingObjectIds.add(instance.objectId)
+
+                                val analyzer =
+                                    HeapAnalyzer { l -> SwanLog.d(TAG, "step: ${l.name}") }
+
+                                val time = measureTimeMillis {
+                                    val leakObjects = analyzer.analyzeObjects(
+                                        graph = graph,
+                                        referenceMatchers = AndroidReferenceMatchers.appDefaults,
+                                        leakingObjectIds = mLeakingObjectIds,
+                                    )
+                                    SwanLog.d(
+                                        TAG,
+                                        "leak applicationLeaks: ${leakObjects.applicationLeaks.size}"
+                                    )
+                                    SwanLog.d(
+                                        TAG,
+                                        "leak libraryLeaks: ${leakObjects.libraryLeaks.size}"
+                                    )
+                                    SwanLog.d(
+                                        TAG,
+                                        "leak unreachableObjects: ${leakObjects.unreachableObjects.size}"
+                                    )
                                 }
 
+                                SwanLog.d(TAG, "time: $time")
 
 
                             }

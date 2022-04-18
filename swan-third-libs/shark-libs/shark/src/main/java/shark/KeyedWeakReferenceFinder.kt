@@ -17,7 +17,7 @@ object KeyedWeakReferenceFinder : LeakingObjectFinder {
 
   fun heapDumpUptimeMillis(graph: HeapGraph): Long? {
     return graph.context.getOrPut("heapDumpUptimeMillis") {
-      val keyedWeakReferenceClass = graph.findClassByName("leakcanary.KeyedWeakReference")
+      val keyedWeakReferenceClass = graph.findClassByName("com.bomber.swan.resource.matrix.watcher.KeyedWeakReference")
       val heapDumpUptimeMillis = if (keyedWeakReferenceClass == null) {
         null
       } else {
@@ -34,7 +34,7 @@ object KeyedWeakReferenceFinder : LeakingObjectFinder {
 
   internal fun findKeyedWeakReferences(graph: HeapGraph): List<KeyedWeakReferenceMirror> {
     return graph.context.getOrPut(KEYED_WEAK_REFERENCE.name) {
-      val keyedWeakReferenceClass = graph.findClassByName("leakcanary.KeyedWeakReference")
+      val keyedWeakReferenceClass = graph.findClassByName("com.bomber.swan.resource.matrix.watcher.KeyedWeakReference")
 
       val keyedWeakReferenceClassId = keyedWeakReferenceClass?.objectId ?: 0
       val legacyKeyedWeakReferenceClassId =

@@ -17,51 +17,20 @@ package shark
 
 import shark.HeapAnalyzer.TrieNode.LeafNode
 import shark.HeapAnalyzer.TrieNode.ParentNode
-import shark.HeapObject.HeapClass
-import shark.HeapObject.HeapInstance
-import shark.HeapObject.HeapObjectArray
-import shark.HeapObject.HeapPrimitiveArray
+import shark.HeapObject.*
 import shark.HprofHeapGraph.Companion.openHeapGraph
 import shark.LeakTrace.GcRootType
 import shark.LeakTraceObject.LeakingStatus
-import shark.LeakTraceObject.LeakingStatus.LEAKING
-import shark.LeakTraceObject.LeakingStatus.NOT_LEAKING
-import shark.LeakTraceObject.LeakingStatus.UNKNOWN
-import shark.LeakTraceObject.ObjectType.ARRAY
-import shark.LeakTraceObject.ObjectType.CLASS
-import shark.LeakTraceObject.ObjectType.INSTANCE
-import shark.OnAnalysisProgressListener.Step.BUILDING_LEAK_TRACES
-import shark.OnAnalysisProgressListener.Step.COMPUTING_NATIVE_RETAINED_SIZE
-import shark.OnAnalysisProgressListener.Step.COMPUTING_RETAINED_SIZE
-import shark.OnAnalysisProgressListener.Step.EXTRACTING_METADATA
-import shark.OnAnalysisProgressListener.Step.FINDING_RETAINED_OBJECTS
-import shark.OnAnalysisProgressListener.Step.INSPECTING_OBJECTS
-import shark.OnAnalysisProgressListener.Step.PARSING_HEAP_DUMP
-import shark.internal.AndroidNativeSizeMapper
-import shark.internal.DominatorTree
-import shark.internal.PathFinder
+import shark.LeakTraceObject.LeakingStatus.*
+import shark.LeakTraceObject.ObjectType.*
+import shark.OnAnalysisProgressListener.Step.*
+import shark.internal.*
 import shark.internal.PathFinder.PathFindingResults
-import shark.internal.ReferencePathNode
 import shark.internal.ReferencePathNode.ChildNode
 import shark.internal.ReferencePathNode.RootNode
-import shark.internal.ShallowSizeCalculator
-import shark.internal.createSHA1Hash
-import shark.internal.lastSegment
-import java.io.File
-import java.util.ArrayList
-import java.util.concurrent.TimeUnit.NANOSECONDS
-import shark.internal.AndroidReferenceReaders
-import shark.internal.ApacheHarmonyInstanceRefReaders
-import shark.internal.ChainingInstanceReferenceReader
-import shark.internal.ClassReferenceReader
-import shark.internal.DelegatingObjectReferenceReader
-import shark.internal.FieldInstanceReferenceReader
-import shark.internal.JavaLocalReferenceReader
-import shark.internal.ObjectArrayReferenceReader
-import shark.internal.OpenJdkInstanceRefReaders
-import shark.internal.ReferenceLocationType
 import shark.internal.ReferencePathNode.RootNode.LibraryLeakRootNode
-import shark.internal.ReferenceReader
+import java.io.File
+import java.util.concurrent.TimeUnit.NANOSECONDS
 
 /**
  * Analyzes heap dumps to look for leaks.
@@ -133,6 +102,36 @@ class HeapAnalyzer constructor(
         exception = HeapAnalysisException(throwable)
       )
     }
+  }
+
+  fun analyzeObjects(
+    graph: HeapGraph,
+    referenceMatchers: List<ReferenceMatcher>,
+    leakingObjectIds: Set<Long>,
+    computeRetainedHeapSize: Boolean = false,
+    objectInspectors: List<ObjectInspector> = mutableListOf(),
+  ): LeaksAndUnreachableObjects {
+      val referenceReader = DelegatingObjectReferenceReader(
+          classReferenceReader = ClassReferenceReader(graph, referenceMatchers),
+          instanceReferenceReader = ChainingInstanceReferenceReader(
+              listOf(
+                  JavaLocalReferenceReader(graph, referenceMatchers),
+              )
+                      + OpenJdkInstanceRefReaders.values().mapNotNull { it.create(graph) }
+                      + ApacheHarmonyInstanceRefReaders.values().mapNotNull { it.create(graph) }
+                      + AndroidReferenceReaders.values().mapNotNull { it.create(graph) },
+              FieldInstanceReferenceReader(graph, referenceMatchers)
+          ),
+          objectArrayReferenceReader = ObjectArrayReferenceReader()
+      )
+      val helper = FindLeakInput(
+          graph,
+          referenceMatchers,
+          computeRetainedHeapSize,
+          objectInspectors,
+          referenceReader
+      )
+      return helper.findLeaks(leakingObjectIds)
   }
 
   /**
@@ -263,7 +262,7 @@ class HeapAnalyzer constructor(
     )
   }
 
-  private data class LeaksAndUnreachableObjects(
+  data class LeaksAndUnreachableObjects(
     val applicationLeaks: List<ApplicationLeak>,
     val libraryLeaks: List<LibraryLeak>,
     val unreachableObjects: List<LeakTraceObject>

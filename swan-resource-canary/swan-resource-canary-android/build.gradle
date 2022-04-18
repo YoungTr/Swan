@@ -55,5 +55,6 @@ dependencies {
     implementation libs.kotlin.stdlib
     implementation libs.androidX.work.multiprocess
     implementation libs.androidX.work.runtime
-    implementation libs.bundles.sharks
+    implementation project(':swan-third-libs:shark-libs:shark')
+    implementation project(':swan-third-libs:shark-libs:shark-android')
 }
