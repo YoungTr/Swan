@@ -12,7 +12,6 @@ import shark.AndroidReferenceMatchers
 import shark.HeapAnalyzer
 import shark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
-import kotlin.system.measureTimeMillis
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-18_22-19-54_681.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-19_17-16-23_943.hprof")
 
 
                 backgroundHandler.post {
@@ -56,28 +55,55 @@ class MainActivity : AppCompatActivity() {
                                 val analyzer =
                                     HeapAnalyzer { l -> SwanLog.d(TAG, "step: ${l.name}") }
 
-                                val time = measureTimeMillis {
-                                    val leakObjects = analyzer.analyzeObjects(
+                                val leakObjects: HeapAnalyzer.LeaksAndUnreachableObjects =
+                                    analyzer.analyzeObjects(
                                         graph = graph,
                                         referenceMatchers = AndroidReferenceMatchers.appDefaults,
                                         leakingObjectIds = mLeakingObjectIds,
                                     )
-                                    SwanLog.d(
-                                        TAG,
-                                        "leak applicationLeaks: ${leakObjects.applicationLeaks.size}"
-                                    )
-                                    SwanLog.d(
-                                        TAG,
-                                        "leak libraryLeaks: ${leakObjects.libraryLeaks.size}"
-                                    )
-                                    SwanLog.d(
-                                        TAG,
-                                        "leak unreachableObjects: ${leakObjects.unreachableObjects.size}"
-                                    )
+                                SwanLog.d(
+                                    TAG,
+                                    "leak applicationLeaks: ${leakObjects.applicationLeaks.size}"
+                                )
+                                SwanLog.d(
+                                    TAG,
+                                    "leak libraryLeaks: ${leakObjects.libraryLeaks.size}"
+                                )
+                                SwanLog.d(
+                                    TAG,
+                                    "leak unreachableObjects: ${leakObjects.unreachableObjects.size}"
+                                )
+
+                                val leak = leakObjects.applicationLeaks[0]
+                                val (gcRootType, referencePath, leakTraceObject) = leak.leakTraces[0]
+
+                                val gcRoot = gcRootType.description
+                                val labels = leakTraceObject.labels.toTypedArray()
+
+                                SwanLog.d(
+                                    TAG,
+                                    "GC Root: $gcRoot, leakObjClazz: ${leakTraceObject.className}, leakObjType: ${leakTraceObject.typeName}"
+                                )
+
+                                SwanLog.d(TAG,"-------------reference---------------------------")
+                                // 添加索引到的trace path
+                                for (reference in referencePath) {
+                                    val referenceName = reference.referenceName
+                                    val clazz = reference.originObject.className
+                                    val referenceDisplayName = reference.referenceDisplayName
+                                    val referenceGenericName = reference.referenceGenericName
+                                    val referenceType = reference.referenceType.toString()
+                                    val declaredClassName = reference.owningClassName
+
+                                    SwanLog.i(
+                                        TAG, "clazz:" + clazz +
+                                            ", referenceName:" + referenceName
+                                            + ", referenceDisplayName:" + referenceDisplayName
+                                            + ", referenceGenericName:" + referenceGenericName
+                                            + ", referenceType:" + referenceType
+                                            + ", declaredClassName:" + declaredClassName)
+
                                 }
-
-                                SwanLog.d(TAG, "time: $time")
-
 
                             }
 
