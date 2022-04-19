@@ -14,6 +14,4 @@ dependencies {
   testImplementation libs.assertjCore
   testImplementation libs.junit
   testImplementation libs.okio2
-  testImplementation project(':swan-third-libs:shark-libs:shark-test')
-  testImplementation project(':swan-third-libs:shark-libs:shark-hprof-test')
 }

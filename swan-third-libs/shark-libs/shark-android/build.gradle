@@ -16,5 +16,4 @@ dependencies {
   testImplementation libs.mockito
   testImplementation libs.mockitoKotlin
   testImplementation libs.okio2
-  testImplementation project(':swan-third-libs:shark-libs:shark-test')
 }
