@@ -51,6 +51,28 @@ class MainActivity : AppCompatActivity() {
                             SwanLog.d(TAG, "step: ${step.step}")
                         }
                     )
+
+                    // by leak canary
+//                    val heapAnalyzer = HeapAnalyzer { step ->
+//                        SwanLog.d(TAG, "step: ${step.name}")
+//                    }
+//
+//                    val graph = hprofFile.openHeapGraph()
+//
+//                    val heapAnalysisSuccess = heapAnalyzer.analyze(
+//                        heapDumpFile = hprofFile,
+//                        graph = graph,
+//                        leakingObjectFinder = KeyedWeakReferenceFinder,
+//                        referenceMatchers = AndroidReferenceMatchers.appDefaults,
+//                        computeRetainedHeapSize = true,
+//                        objectInspectors = AndroidObjectInspectors.appDefaults,
+//                        metadataExtractor = AndroidMetadataExtractor
+//                    )
+//
+//                    SwanLog.d(TAG, "heapAnalysis:\n$heapAnalysisSuccess")
+
+
+
                 }
             }.onFailure { throwable ->
                 SwanLog.d(TAG, "parse hprof fail: $throwable")

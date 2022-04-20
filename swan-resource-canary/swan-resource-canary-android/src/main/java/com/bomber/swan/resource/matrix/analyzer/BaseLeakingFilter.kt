@@ -39,7 +39,7 @@ abstract class BaseLeakingFilter(
         leakReasonTable[objectId] = reason
     }
 
-    abstract fun findLeaking(instance: HeapObject.HeapInstance, superId: Pair<Long, Long>): Boolean
+    abstract fun findLeaking(instance: HeapObject.HeapInstance, superId: Pair<Long, Long>)
 
     companion object {
         internal const val SAME_CLASS_LEAK_OBJECT_PATH_THRESHOLD = 45

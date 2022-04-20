@@ -109,7 +109,6 @@ HEAP ANALYSIS RESULT
 ${applicationLeaks.size} APPLICATION LEAKS
 
 References underlined with "~~~" are likely causes.
-Learn more at https://squ.re/leaks.
 ${
       if (applicationLeaks.isNotEmpty()) "\n" + applicationLeaks.joinToString(
         "\n\n"
@@ -117,8 +116,6 @@ ${
     }====================================
 ${libraryLeaks.size} LIBRARY LEAKS
 
-A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
-See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
 ${
       if (libraryLeaks.isNotEmpty()) "\n" + libraryLeaks.joinToString(
         "\n\n"

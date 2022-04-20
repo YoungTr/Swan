@@ -177,15 +177,14 @@ object AndroidDebugHeapAnalyzer {
         //
         val leakingObjectIds = mutableSetOf<Long>()
         val leakReasonTable = mutableMapOf<Long, String>()
-        val leakingFilters =
-            listOf(
-                ActivityLeakFilter(
-                    graph,
-                    classObjectCounterMap,
-                    leakingObjectIds,
-                    leakReasonTable
-                )
-            )
+        val activityLeakFilter = ActivityLeakFilter(
+            graph,
+            classObjectCounterMap,
+            leakingObjectIds,
+            leakReasonTable
+        )
+
+        val activityClass = graph.findClassByName(ACTIVITY_CLASS_NAME)
 
         for (instance in graph.instances) {
             if (instance.isPrimitiveWrapper) continue
@@ -217,9 +216,22 @@ object AndroidDebugHeapAnalyzer {
              * 1.Bitmap
              * 2.基本类型数组
              */
-            leakingFilters.forEach { filter ->
-                if (filter.findLeaking(instance, pair)) return@forEach
-            }
+
+//            val superId4 = pair.second
+//            if (activityClass?.objectId == superId4) {
+//                val destroyField = instance[ACTIVITY_CLASS_NAME, DESTROYED_FIELD_NAME]!!
+//                val finishedField = instance[ACTIVITY_CLASS_NAME, FINISHED_FIELD_NAME]!!
+//                if (destroyField.value.asBoolean!! || finishedField.value.asBoolean!!) {
+//                    SwanLog.i(
+//                        TAG, "activity name : " + instance.instanceClassName
+//                                + " mDestroyed:" + destroyField.value.asBoolean
+//                                + " mFinished:" + finishedField.value.asBoolean
+//                                + " objectId:" + (instance.objectId and 0xffffffffL)
+//                    )
+//
+//                }
+//            }
+            activityLeakFilter.findLeaking(instance, pair)
 
         }
 

@@ -27,9 +27,10 @@ class ActivityLeakFilter(
     override fun findLeaking(
         instance: HeapObject.HeapInstance,
         superId: Pair<Long, Long>
-    ): Boolean {
+    ) {
         val superId4 = superId.second
-        val result = if (superId4 == heapClassId) {
+        val subActivity = superId4 == heapClassId
+        if (subActivity) {
             val destroyField = instance[ACTIVITY_CLASS_NAME, DESTROYED_FIELD_NAME]!!
             val finishedField = instance[ACTIVITY_CLASS_NAME, FINISHED_FIELD_NAME]!!
             if (destroyField.value.asBoolean!! || finishedField.value.asBoolean!!) {
@@ -45,12 +46,8 @@ class ActivityLeakFilter(
                     putLeakingObjectReason(instance.objectId, "Activity leak")
                 }
             }
-            true
-        } else {
-            false
-        }
 
-        return result
+        }
     }
 
 
