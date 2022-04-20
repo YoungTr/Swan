@@ -111,6 +111,7 @@ internal object InternalSwanResource : OnObjectRetainedListener {
     }
 
     fun analyzeHeap(heapDump: HeapDump) {
+        SwanLog.d(TAG, "analyzeHeap: ${heapDump.file}")
         Global.globalHandler.post {
             AndroidDebugHeapAnalyzer.runAnalysisBlocking(heapDump) { process ->
                 SwanLog.d(TAG, "process: ${process.progressPercent}")

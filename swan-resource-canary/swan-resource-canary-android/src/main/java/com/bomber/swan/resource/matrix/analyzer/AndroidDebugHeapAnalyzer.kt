@@ -3,14 +3,11 @@ package com.bomber.swan.resource.matrix.analyzer
 import android.content.Intent
 import com.bomber.swan.resource.matrix.EventListener.Event.*
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded
-import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 import com.bomber.swan.resource.matrix.internal.LeakDirectoryProvider
 import com.bomber.swan.util.SwanLog
 import shark.*
 import shark.HprofHeapGraph.Companion.openHeapGraph
-import shark.OnAnalysisProgressListener.Step.PARSING_HEAP_DUMP
 import java.io.File
-import java.io.IOException
 
 /**
  * @author youngtr
@@ -19,9 +16,47 @@ import java.io.IOException
 object AndroidDebugHeapAnalyzer {
 
     private const val TAG = "Swan.HeapAnalyzer"
-    private const val PROGUARD_MAPPING_FILE_NAME = "resourceCanaryObfuscationMapping.txt"
 
-    private val application = ResourceMatrixPlugin.getApplication()
+
+    private const val OOM_ANALYSIS_TAG = "OOMMonitor"
+    private const val OOM_ANALYSIS_EXCEPTION_TAG = "OOMMonitor_Exception"
+
+    //Activity->ContextThemeWrapper->ContextWrapper->Context->Object
+    private const val ACTIVITY_CLASS_NAME = "android.app.Activity"
+
+    //Bitmap->Object
+    //Exception: Some OPPO devices
+    const val BITMAP_CLASS_NAME = "android.graphics.Bitmap"
+
+    //Fragment->Object
+    private const val NATIVE_FRAGMENT_CLASS_NAME = "android.app.Fragment"
+
+    // native android Fragment, deprecated as of API 28.
+    private const val SUPPORT_FRAGMENT_CLASS_NAME = "android.support.v4.app.Fragment"
+
+    // pre-androidx, support library version of the Fragment implementation.
+    private const val ANDROIDX_FRAGMENT_CLASS_NAME = "androidx.fragment.app.Fragment"
+
+    // androidx version of the Fragment implementation
+    //Window->Object
+    private const val WINDOW_CLASS_NAME = "android.view.Window"
+
+    //NativeAllocationRegistry
+    private const val NATIVE_ALLOCATION_CLASS_NAME = "libcore.util.NativeAllocationRegistry"
+    private const val NATIVE_ALLOCATION_CLEANER_THUNK_CLASS_NAME =
+        "libcore.util.NativeAllocationRegistry\$CleanerThunk"
+
+    private const val FINISHED_FIELD_NAME = "mFinished"
+    private const val DESTROYED_FIELD_NAME = "mDestroyed"
+
+    private const val FRAGMENT_MANAGER_FIELD_NAME = "mFragmentManager"
+    private const val FRAGMENT_MCALLED_FIELD_NAME = "mCalled"
+
+    private const val DEFAULT_BIG_PRIMITIVE_ARRAY = 256 * 1024
+    private const val DEFAULT_BIG_BITMAP = 768 * 1366 + 1
+    private const val DEFAULT_BIG_OBJECT_ARRAY = 256 * 1024
+    private const val SAME_CLASS_LEAK_OBJECT_PATH_THRESHOLD = 45
+
 
     fun runAnalysisBlocking(
         heapDumped: HeapDump,
@@ -116,61 +151,113 @@ object AndroidDebugHeapAnalyzer {
         processEventListener: OnAnalysisProgressListener,
         canceled: () -> Boolean
     ): HeapAnalysis {
-        val config = ResourceMatrixPlugin.config
-        val heapAnalyzer = HeapAnalyzer(processEventListener)
-        val proguardMappingReader = try {
-            ProguardMappingReader(application.assets.open(PROGUARD_MAPPING_FILE_NAME))
-        } catch (e: IOException) {
-            null
-        }
 
-        processEventListener.onAnalysisProgress(PARSING_HEAP_DUMP)
+        val startTime = System.currentTimeMillis()
 
-        val sourceProvider = ConstantMemoryMetricsDualSourceProvider(
-            ThrowingCancelableFileSourceProvider(heapDumpFile) {
-                if (canceled()) {
-                    throw RuntimeException("Analysis canceled")
-                }
-            })
-
-        val closeableGraph = try {
-            sourceProvider.openHeapGraph(proguardMapping = proguardMappingReader?.readProguardMapping())
-        } catch (throwable: Throwable) {
-            return HeapAnalysisFailure(
-                heapDumpFile = heapDumpFile,
-                createdAtTimeMillis = System.currentTimeMillis(),
-                analysisDurationMillis = 0,
-                exception = HeapAnalysisException(throwable)
-            )
-        }
-
-        SwanLog.d(TAG, "graph: ${closeableGraph.instanceCount}")
-
-        return closeableGraph
-            .use { graph ->
-                val result = heapAnalyzer.analyze(
-                    heapDumpFile = heapDumpFile,
-                    graph = graph,
-                    leakingObjectFinder = config.leakingObjectFinder,
-                    objectInspectors = config.objectInspectors,
+        val graph =
+            heapDumpFile.openHeapGraph(
+                indexedGcRootTypes = setOf(
+                    HprofRecordTag.ROOT_JNI_GLOBAL,
+                    HprofRecordTag.ROOT_JNI_LOCAL,
+                    HprofRecordTag.ROOT_NATIVE_STACK,
+                    HprofRecordTag.ROOT_STICKY_CLASS,
+                    HprofRecordTag.ROOT_THREAD_BLOCK,
+                    HprofRecordTag.ROOT_THREAD_OBJECT,
                 )
+            )
 
-                SwanLog.d(TAG, "result: $result")
 
-                if (result is HeapAnalysisSuccess) {
-                    val lruCacheStats = (graph as HprofHeapGraph).lruCacheStats()
-                    val randomAccessStats =
-                        "RandomAccess[" +
-                                "bytes=${sourceProvider.randomAccessByteReads}," +
-                                "reads=${sourceProvider.randomAccessReadCount}," +
-                                "travel=${sourceProvider.randomAccessByteTravel}," +
-                                "range=${sourceProvider.byteTravelRange}," +
-                                "size=${heapDumpFile.length()}" +
-                                "]"
-                    val stats = "$lruCacheStats $randomAccessStats"
-                    result.copy(metadata = result.metadata + ("Stats" to stats))
-                } else result
+        val analyzer = HeapAnalyzer(processEventListener)
+
+        //缓存classHierarchy，用于查找class的所有instance
+        val classHierarchyMap = mutableMapOf<Long, Pair<Long, Long>>()
+
+        // 记录class objects数量
+        val classObjectCounterMap = mutableMapOf<Long, ObjectCounter>()
+        //
+        val leakingObjectIds = mutableSetOf<Long>()
+        val leakReasonTable = mutableMapOf<Long, String>()
+        val leakingFilters =
+            listOf(
+                ActivityLeakFilter(
+                    graph,
+                    classObjectCounterMap,
+                    leakingObjectIds,
+                    leakReasonTable
+                )
+            )
+
+        for (instance in graph.instances) {
+            if (instance.isPrimitiveWrapper) continue
+
+            val pair = superIdPair(instance, classHierarchyMap)
+
+            /**
+             * 遍历镜像所有class查找
+             *
+             * 计算gc path：
+             * 1.已经destroyed和finished的activity
+             * 2.已经fragment manager为空的fragment
+             * 3.已经destroyed的window
+             * 4.超过阈值大小的bitmap
+             * 5.超过阈值大小的基本类型数组
+             * 6.超过阈值大小的对象个数的任意class
+             *
+             *
+             * 记录关键类:
+             * 对象数量
+             * 1.基本类型数组
+             * 2.Bitmap
+             * 3.NativeAllocationRegistry
+             * 4.超过阈值大小的对象的任意class
+             *
+             *
+             * 记录大对象:
+             * 对象大小
+             * 1.Bitmap
+             * 2.基本类型数组
+             */
+            leakingFilters.forEach { filter ->
+                if (filter.findLeaking(instance, pair)) return@forEach
             }
+
+        }
+
+        SwanLog.d(TAG, "analyze spend ${System.currentTimeMillis() - startTime} ms")
+
+        return HeapAnalysisSuccess(
+            heapDumpFile,
+            0,
+            0,
+            0,
+            mapOf(),
+            listOf(),
+            listOf(),
+            listOf()
+        )
+
+    }
+
+    /**
+     * 使用HashMap缓存及遍历两边classHierarchy，这2种方式加速查找instance是否是对应类实例
+     * superId1代表类的继承层次中倒数第一的id，0就是继承自object
+     * superId4代表类的继承层次中倒数第四的id
+     * 类的继承关系，以AOSP代码为主，部分厂商入如OPPO Bitmap会做一些修改，这里先忽略
+     */
+    private fun superIdPair(
+        instance: HeapObject.HeapInstance,
+        classHierarchyMap: Map<Long, Pair<Long, Long>>
+    ): Pair<Long, Long> {
+        val instanceClassId = instance.instanceClassId
+        val pair = if (classHierarchyMap[instanceClassId] != null) {
+            classHierarchyMap[instanceClassId]!!
+        } else {
+            val classHierarchyList = instance.instanceClass.classHierarchy.toList()
+            val first = classHierarchyList.getOrNull(classHierarchyList.size - 2)?.objectId ?: -1L
+            val second = classHierarchyList.getOrNull(classHierarchyList.size - 5)?.objectId ?: -1L
+            Pair(first, second).also { classHierarchyMap[instanceClassId] }
+        }
+        return pair
     }
 
 
@@ -190,3 +277,5 @@ object AndroidDebugHeapAnalyzer {
     }
 
 }
+
+data class ObjectCounter(var allCounter: Int = 0, var leakCount: Int = 0)

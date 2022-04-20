@@ -18,7 +18,6 @@ package shark
 import shark.HeapAnalyzer.TrieNode.LeafNode
 import shark.HeapAnalyzer.TrieNode.ParentNode
 import shark.HeapObject.*
-import shark.HprofHeapGraph.Companion.openHeapGraph
 import shark.LeakTrace.GcRootType
 import shark.LeakTraceObject.LeakingStatus
 import shark.LeakTraceObject.LeakingStatus.*
@@ -47,64 +46,7 @@ class HeapAnalyzer constructor(
     val referenceReader: ReferenceReader<HeapObject>
   )
 
-  @Deprecated("Use the non deprecated analyze method instead")
   fun analyze(
-    heapDumpFile: File,
-    leakingObjectFinder: LeakingObjectFinder,
-    referenceMatchers: List<ReferenceMatcher> = emptyList(),
-    computeRetainedHeapSize: Boolean = false,
-    objectInspectors: List<ObjectInspector> = emptyList(),
-    metadataExtractor: MetadataExtractor = MetadataExtractor.NO_OP,
-    proguardMapping: ProguardMapping? = null
-  ): HeapAnalysis {
-    if (!heapDumpFile.exists()) {
-      val exception = IllegalArgumentException("File does not exist: $heapDumpFile")
-      return HeapAnalysisFailure(
-        heapDumpFile = heapDumpFile,
-        createdAtTimeMillis = System.currentTimeMillis(),
-        analysisDurationMillis = 0,
-        exception = HeapAnalysisException(exception)
-      )
-    }
-    listener.onAnalysisProgress(PARSING_HEAP_DUMP)
-    val sourceProvider = ConstantMemoryMetricsDualSourceProvider(FileSourceProvider(heapDumpFile))
-    return try {
-      sourceProvider.openHeapGraph(proguardMapping).use { graph ->
-        analyze(
-          heapDumpFile,
-          graph,
-          leakingObjectFinder,
-          referenceMatchers,
-          computeRetainedHeapSize,
-          objectInspectors,
-          metadataExtractor
-        ).let { result ->
-          if (result is HeapAnalysisSuccess) {
-            val lruCacheStats = (graph as HprofHeapGraph).lruCacheStats()
-            val randomAccessStats =
-              "RandomAccess[" +
-                "bytes=${sourceProvider.randomAccessByteReads}," +
-                "reads=${sourceProvider.randomAccessReadCount}," +
-                "travel=${sourceProvider.randomAccessByteTravel}," +
-                "range=${sourceProvider.byteTravelRange}," +
-                "size=${heapDumpFile.length()}" +
-                "]"
-            val stats = "$lruCacheStats $randomAccessStats"
-            result.copy(metadata = result.metadata + ("Stats" to stats))
-          } else result
-        }
-      }
-    } catch (throwable: Throwable) {
-      HeapAnalysisFailure(
-        heapDumpFile = heapDumpFile,
-        createdAtTimeMillis = System.currentTimeMillis(),
-        analysisDurationMillis = 0,
-        exception = HeapAnalysisException(throwable)
-      )
-    }
-  }
-
-  fun analyzeObjects(
     graph: HeapGraph,
     referenceMatchers: List<ReferenceMatcher>,
     leakingObjectIds: Set<Long>,

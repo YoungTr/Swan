@@ -6,12 +6,12 @@ import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityMainBinding
 import com.bomber.swan.resource.ResourceActivity
+import com.bomber.swan.resource.matrix.EventListener
+import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
-import shark.AndroidReferenceMatchers
-import shark.HeapAnalyzer
-import shark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,91 +32,28 @@ class MainActivity : AppCompatActivity() {
 
         binding.parseHprof.setOnClickListener {
 
+            SwanLog.d(TAG, "parse hprof file")
+
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-19_17-16-23_943.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-20_21-18-46_749.hprof")
 
 
                 backgroundHandler.post {
-                    val heapGraph = hprofFile.openHeapGraph()
-                    heapGraph.use { graph ->
-                        val ACTIVITY_CLASS = "android.app.Activity"
-                        val DESTROYED_FIELD_NAME = "mDestroyed"
-                        val activityHeapClass = graph.findClassByName(ACTIVITY_CLASS)
-                        for (instance in graph.instances) {
-                            if (instance.isPrimitiveWrapper) continue
-                            if (instance.instanceClassName.endsWith("ResourceActivity")) {
-                                SwanLog.d(TAG, instance.instanceClassName)
-
-
-                                val mLeakingObjectIds = mutableSetOf<Long>()
-                                mLeakingObjectIds.add(instance.objectId)
-
-                                val analyzer =
-                                    HeapAnalyzer { l -> SwanLog.d(TAG, "step: ${l.name}") }
-
-                                val leakObjects: HeapAnalyzer.LeaksAndUnreachableObjects =
-                                    analyzer.analyzeObjects(
-                                        graph = graph,
-                                        referenceMatchers = AndroidReferenceMatchers.appDefaults,
-                                        leakingObjectIds = mLeakingObjectIds,
-                                    )
-                                SwanLog.d(
-                                    TAG,
-                                    "leak applicationLeaks: ${leakObjects.applicationLeaks.size}"
-                                )
-                                SwanLog.d(
-                                    TAG,
-                                    "leak libraryLeaks: ${leakObjects.libraryLeaks.size}"
-                                )
-                                SwanLog.d(
-                                    TAG,
-                                    "leak unreachableObjects: ${leakObjects.unreachableObjects.size}"
-                                )
-
-                                val leak = leakObjects.applicationLeaks[0]
-                                val (gcRootType, referencePath, leakTraceObject) = leak.leakTraces[0]
-
-                                val gcRoot = gcRootType.description
-                                val labels = leakTraceObject.labels.toTypedArray()
-
-                                SwanLog.d(
-                                    TAG,
-                                    "GC Root: $gcRoot, leakObjClazz: ${leakTraceObject.className}, leakObjType: ${leakTraceObject.typeName}"
-                                )
-
-                                SwanLog.d(TAG,"-------------reference---------------------------")
-                                // 添加索引到的trace path
-                                for (reference in referencePath) {
-                                    val referenceName = reference.referenceName
-                                    val clazz = reference.originObject.className
-                                    val referenceDisplayName = reference.referenceDisplayName
-                                    val referenceGenericName = reference.referenceGenericName
-                                    val referenceType = reference.referenceType.toString()
-                                    val declaredClassName = reference.owningClassName
-
-                                    SwanLog.i(
-                                        TAG, "clazz:" + clazz +
-                                            ", referenceName:" + referenceName
-                                            + ", referenceDisplayName:" + referenceDisplayName
-                                            + ", referenceGenericName:" + referenceGenericName
-                                            + ", referenceType:" + referenceType
-                                            + ", declaredClassName:" + declaredClassName)
-
-                                }
-
-                            }
-
+                    AndroidDebugHeapAnalyzer.runAnalysisBlocking(
+                        EventListener.Event.HeapDump(
+                            UUID.randomUUID().toString(),
+                            hprofFile,
+                            System.currentTimeMillis(),
+                            reason = "analyzer"
+                        ),
+                        processEventListener = { step ->
+                            SwanLog.d(TAG, "step: ${step.step}")
                         }
-
-                        SwanLog.d(TAG, "finished")
-
-                    }
-
-
+                    )
                 }
             }.onFailure { throwable ->
-                SwanLog.d("MainActivity", "parse hprof fail: $throwable")
+                SwanLog.d(TAG, "parse hprof fail: $throwable")
             }
 
         }
