@@ -15,4 +15,10 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/big_img"
+        android:layout_width="match_parent"
+        android:src="@mipmap/cat"
+        android:layout_height="match_parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
