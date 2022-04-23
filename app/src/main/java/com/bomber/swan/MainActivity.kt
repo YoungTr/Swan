@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-20_21-18-46_749.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-23_15-21-12_958.hprof")
 
 
                 backgroundHandler.post {

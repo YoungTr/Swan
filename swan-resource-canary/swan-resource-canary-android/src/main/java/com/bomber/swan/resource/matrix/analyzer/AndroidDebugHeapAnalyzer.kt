@@ -181,6 +181,11 @@ object AndroidDebugHeapAnalyzer {
         val activityHeapClass = graph.findClassByName(ACTIVITY_CLASS_NAME)
         val fragmentHeapClass = graph.findClassByName(ANDROIDX_FRAGMENT_CLASS_NAME)
         val bitmapHeapCass = graph.findClassByName(BITMAP_CLASS_NAME)
+        val nativeAllocationHeapClass = graph.findClassByName(NATIVE_ALLOCATION_CLASS_NAME)
+        val nativeAllocationThunkHeapClass = graph.findClassByName(
+            NATIVE_ALLOCATION_CLEANER_THUNK_CLASS_NAME
+        )
+        val windowClass = graph.findClassByName(WINDOW_CLASS_NAME)
 
         for (instance in graph.instances) {
             if (instance.isPrimitiveWrapper) continue
@@ -293,6 +298,14 @@ object AndroidDebugHeapAnalyzer {
                     }
                 }
                 continue
+            }
+
+            // native allocation/native allocation thunk/window
+            if (nativeAllocationHeapClass?.objectId == superId1
+                || nativeAllocationThunkHeapClass?.objectId == superId1
+                || windowClass?.objectId == superId1
+            ) {
+                updateClassObjectCounterMap(classObjectCounterMap, instanceClassId, false)
             }
 
         }
