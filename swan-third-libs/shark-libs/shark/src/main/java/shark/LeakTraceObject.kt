@@ -2,16 +2,15 @@ package shark
 
 import shark.LeakTrace.Companion.ZERO_WIDTH_SPACE
 import shark.LeakTraceObject.LeakingStatus
-import shark.LeakTraceObject.LeakingStatus.LEAKING
-import shark.LeakTraceObject.LeakingStatus.NOT_LEAKING
-import shark.LeakTraceObject.LeakingStatus.UNKNOWN
+import shark.LeakTraceObject.LeakingStatus.*
 import shark.internal.lastSegment
 import java.io.Serializable
-import java.util.Locale
+import java.util.*
 import kotlin.math.ln
 import kotlin.math.pow
 
 data class LeakTraceObject(
+  val objectId: Long,
   val type: ObjectType,
   /**
    * Class name of the object.

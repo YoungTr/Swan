@@ -502,6 +502,7 @@ class HeapAnalyzer constructor(
       val retainedSizeAndObjectCount = retainedSizes?.get(inspectedObject.heapObject.objectId)
 
       LeakTraceObject(
+        objectId = heapObject.objectId,
         type = objectType,
         className = className,
         labels = inspectedObject.labels,

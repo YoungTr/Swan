@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
             kotlin.runCatching {
                 val hprofFile =
-                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-23_15-21-12_958.hprof")
+                    File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-24_14-58-44_805.hprof")
 
 
                 backgroundHandler.post {
@@ -70,7 +70,6 @@ class MainActivity : AppCompatActivity() {
 //                    )
 //
 //                    SwanLog.d(TAG, "heapAnalysis:\n$heapAnalysisSuccess")
-
 
 
                 }
