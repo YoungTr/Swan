@@ -5,8 +5,8 @@ import com.bomber.swan.resource.matrix.EventListener.Event.*
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded
 import com.bomber.swan.resource.matrix.internal.LeakDirectoryProvider
 import com.bomber.swan.util.SwanLog
-import shark.*
-import shark.HprofHeapGraph.Companion.openHeapGraph
+import kshark.*
+import kshark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
 
 /**
@@ -331,143 +331,145 @@ object AndroidDebugHeapAnalyzer {
 
         SwanLog.d(TAG, "analyze spend ${System.currentTimeMillis() - startTime} ms")
 
-        SwanLog.d(TAG,"leakingObjectIds size: ${leakingObjectIds.size}")
+        SwanLog.d(TAG, "leakingObjectIds size: ${leakingObjectIds.size}")
 
         val analyzer = HeapAnalyzer(processEventListener)
-        analyzer.analyze(
+        val findLeakInput = HeapAnalyzer.FindLeakInput(
             graph = graph,
-            referenceMatchers = AndroidReferenceMatchers.appDefaults,
-            leakingObjectIds = leakingObjectIds
-        ).apply {
-            SwanLog.d(TAG,"applicationLeaks size: ${applicationLeaks.size}")
-            SwanLog.d(TAG,"libraryLeaks size: ${libraryLeaks.size}")
-            SwanLog.d(TAG,"unreachableObjects size: ${unreachableObjects.size}")
+            referenceMatchers = AndroidReferenceMatchers.appDefaults
+        )
 
-            // applicationLeaks
-            for (applicationLeak in applicationLeaks) {
-                val (gcRootType, referencePath, leakTraceObject) = applicationLeak.leakTraces[0]
-                val gcRoot = gcRootType.description
-                val labels = leakTraceObject.labels.toTypedArray()
-                // todo
+        val (applicationLeaks, libraryLeaks) = with(analyzer) {
+            findLeakInput.findLeaks(leakingObjectIds)
+        }
+
+
+        SwanLog.d(TAG, "applicationLeaks size: ${applicationLeaks.size}")
+        SwanLog.d(TAG, "libraryLeaks size: ${libraryLeaks.size}")
+
+        // applicationLeaks
+        for (applicationLeak in applicationLeaks) {
+            val (gcRootType, referencePath, leakTraceObject) = applicationLeak.leakTraces[0]
+            val gcRoot = gcRootType.description
+            val labels = leakTraceObject.labels.toTypedArray()
+            // todo
 //                leakTraceObject.leakingStatusReason =
 //                    leakReasonTable[leakTraceObject.objectId].toString()
 
+            SwanLog.i(
+                TAG, "GC Root:" + gcRoot
+                        + ", leakObjClazz:" + leakTraceObject.className
+                        + ", leakObjType:" + leakTraceObject.typeName
+                        + ", labels:" + labels.contentToString()
+                        + ", leaking reason:" + leakTraceObject.leakingStatusReason
+                        + ", leaking obj:" + (leakTraceObject.objectId and 0xffffffffL)
+            )
+
+            for (reference in referencePath) {
+                val referenceName = reference.referenceName
+                val clazz = reference.originObject.className
+                val referenceDisplayName = reference.referenceDisplayName
+                val referenceGenericName = reference.referenceGenericName
+                val referenceType = reference.referenceType.toString()
+                val declaredClassName = reference.owningClassName
+
                 SwanLog.i(
-                    TAG, "GC Root:" + gcRoot
-                            + ", leakObjClazz:" + leakTraceObject.className
-                            + ", leakObjType:" + leakTraceObject.typeName
-                            + ", labels:" + labels.contentToString()
-                            + ", leaking reason:" + leakTraceObject.leakingStatusReason
-                            + ", leaking obj:" + (leakTraceObject.objectId and 0xffffffffL)
+                    TAG, "clazz:" + clazz +
+                            ", referenceName:" + referenceName
+                            + ", referenceDisplayName:" + referenceDisplayName
+                            + ", referenceGenericName:" + referenceGenericName
+                            + ", referenceType:" + referenceType
+                            + ", declaredClassName:" + declaredClassName
                 )
-
-                for (reference in referencePath) {
-                    val referenceName = reference.referenceName
-                    val clazz = reference.originObject.className
-                    val referenceDisplayName = reference.referenceDisplayName
-                    val referenceGenericName = reference.referenceGenericName
-                    val referenceType = reference.referenceType.toString()
-                    val declaredClassName = reference.owningClassName
-
-                    SwanLog.i(
-                        TAG, "clazz:" + clazz +
-                                ", referenceName:" + referenceName
-                                + ", referenceDisplayName:" + referenceDisplayName
-                                + ", referenceGenericName:" + referenceGenericName
-                                + ", referenceType:" + referenceType
-                                + ", declaredClassName:" + declaredClassName
-                    )
-                }
-
             }
 
-            SwanLog.d(TAG, "===================Library Leaks=========================")
+        }
 
-            // libraryLeaks
-            for (libraryLeak in libraryLeaks) {
-                val (gcRootType, referencePath, leakTraceObject) = libraryLeak.leakTraces[0]
-                val gcRoot = gcRootType.description
-                val labels = leakTraceObject.labels.toTypedArray()
+        SwanLog.d(TAG, "===================Library Leaks=========================")
+
+        // libraryLeaks
+        for (libraryLeak in libraryLeaks) {
+            val (gcRootType, referencePath, leakTraceObject) = libraryLeak.leakTraces[0]
+            val gcRoot = gcRootType.description
+            val labels = leakTraceObject.labels.toTypedArray()
 //                leakTraceObject.leakingStatusReason =
 //                    leakReasonTable[leakTraceObject.objectId].toString()
 
+            SwanLog.i(
+                TAG, "GC Root:" + gcRoot
+                        + ", leakClazz:" + leakTraceObject.className
+                        + ", labels:" + labels.contentToString()
+                        + ", leaking reason:" + leakTraceObject.leakingStatusReason
+            )
+
+            // 添加索引到的trace path
+            for (reference in referencePath) {
+                val clazz = reference.originObject.className
+                val referenceName = reference.referenceName
+                val referenceDisplayName = reference.referenceDisplayName
+                val referenceGenericName = reference.referenceGenericName
+                val referenceType = reference.referenceType.toString()
+                val declaredClassName = reference.owningClassName
+
                 SwanLog.i(
-                    TAG, "GC Root:" + gcRoot
-                            + ", leakClazz:" + leakTraceObject.className
-                            + ", labels:" + labels.contentToString()
-                            + ", leaking reason:" + leakTraceObject.leakingStatusReason
+                    TAG, "clazz:" + clazz +
+                            ", referenceName:" + referenceName
+                            + ", referenceDisplayName:" + referenceDisplayName
+                            + ", referenceGenericName:" + referenceGenericName
+                            + ", referenceType:" + referenceType
+                            + ", declaredClassName:" + declaredClassName
                 )
-
-                // 添加索引到的trace path
-                for (reference in referencePath) {
-                    val clazz = reference.originObject.className
-                    val referenceName = reference.referenceName
-                    val referenceDisplayName = reference.referenceDisplayName
-                    val referenceGenericName = reference.referenceGenericName
-                    val referenceType = reference.referenceType.toString()
-                    val declaredClassName = reference.owningClassName
-
-                    SwanLog.i(
-                        TAG, "clazz:" + clazz +
-                                ", referenceName:" + referenceName
-                                + ", referenceDisplayName:" + referenceDisplayName
-                                + ", referenceGenericName:" + referenceGenericName
-                                + ", referenceType:" + referenceType
-                                + ", declaredClassName:" + declaredClassName
-                    )
-
-                }
 
             }
 
-            return HeapAnalysisSuccess(
-                heapDumpFile,
-                0,
-                0,
-                0,
-                mapOf(),
-                listOf(),
-                listOf(),
-                listOf()
-            )
-
         }
+
+        return HeapAnalysisSuccess(
+            heapDumpFile,
+            0,
+            0,
+            0,
+            mapOf(),
+            listOf(),
+            listOf(),
+            listOf()
+        )
     }
 
 
-        private fun missingFileFailure(
-            heapDumpFile: File
-        ): HeapAnalysisFailure {
-            val deletedReason = LeakDirectoryProvider.hprofDeleteReason(heapDumpFile)
-            val exception = IllegalStateException(
-                "Hprof file $heapDumpFile missing, deleted because: $deletedReason"
-            )
-            return HeapAnalysisFailure(
-                heapDumpFile = heapDumpFile,
-                createdAtTimeMillis = System.currentTimeMillis(),
-                analysisDurationMillis = 0,
-                exception = HeapAnalysisException(exception)
-            )
-        }
-
+    private fun missingFileFailure(
+        heapDumpFile: File
+    ): HeapAnalysisFailure {
+        val deletedReason = LeakDirectoryProvider.hprofDeleteReason(heapDumpFile)
+        val exception = IllegalStateException(
+            "Hprof file $heapDumpFile missing, deleted because: $deletedReason"
+        )
+        return HeapAnalysisFailure(
+            heapDumpFile = heapDumpFile,
+            createdAtTimeMillis = System.currentTimeMillis(),
+            analysisDurationMillis = 0,
+            exception = HeapAnalysisException(exception)
+        )
     }
 
-    private fun updateClassObjectCounterMap(
-        classObCountMap: MutableMap<Long, ObjectCounter>,
-        instanceClassId: Long,
-        isLeak: Boolean
-    ): ObjectCounter {
-        val objectCounter = classObCountMap[instanceClassId] ?: ObjectCounter().also {
-            classObCountMap[instanceClassId] = it
-        }
+}
 
-        objectCounter.allCounter++
-
-        if (isLeak) {
-            objectCounter.leakCount++
-        }
-
-        return objectCounter
+private fun updateClassObjectCounterMap(
+    classObCountMap: MutableMap<Long, ObjectCounter>,
+    instanceClassId: Long,
+    isLeak: Boolean
+): ObjectCounter {
+    val objectCounter = classObCountMap[instanceClassId] ?: ObjectCounter().also {
+        classObCountMap[instanceClassId] = it
     }
 
-    data class ObjectCounter(var allCounter: Int = 0, var leakCount: Int = 0)
+    objectCounter.allCounter++
+
+    if (isLeak) {
+        objectCounter.leakCount++
+    }
+
+    return objectCounter
+}
+
+data class ObjectCounter(var allCounter: Int = 0, var leakCount: Int = 0)

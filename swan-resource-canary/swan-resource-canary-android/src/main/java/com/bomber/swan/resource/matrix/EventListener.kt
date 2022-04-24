@@ -3,10 +3,10 @@ package com.bomber.swan.resource.matrix
 import android.content.Intent
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapDump
 import com.bomber.swan.util.SerializableIntent
-import shark.HeapAnalysis
-import shark.HeapAnalysisFailure
-import shark.HeapAnalysisSuccess
-import shark.OnAnalysisProgressListener.Step
+import kshark.HeapAnalysis
+import kshark.HeapAnalysisFailure
+import kshark.HeapAnalysisSuccess
+import kshark.OnAnalysisProgressListener
 import java.io.File
 import java.io.Serializable
 
@@ -56,7 +56,7 @@ fun interface EventListener {
          */
         class HeapAnalysisProgress(
             uniqueId: String,
-            val step: Step,
+            val step: OnAnalysisProgressListener.Step,
             val progressPercent: Double
         ) : Event(uniqueId)
 

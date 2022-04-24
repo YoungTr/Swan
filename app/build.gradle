@@ -58,6 +58,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation project(':swan-resource-canary:swan-resource-canary-android')
-    implementation project(':swan-third-libs:shark-libs:shark')
-    implementation project(':swan-third-libs:shark-libs:shark-android')
+    implementation project(':swan-third-libs:shark-libs:shark-koom')
+//    implementation project(':swan-third-libs:shark-libs:shark-android')
 }

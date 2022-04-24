@@ -5,7 +5,7 @@ import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
 import com.bomber.swan.resource.matrix.dumper.HeapDumper
 import com.bomber.swan.resource.matrix.dumper.NoHeapDumper
 import com.bomber.swan.resource.matrix.dumper.NormalHeapDumper
-import shark.*
+import kshark.*
 
 data class ResourceConfig(
     /**
