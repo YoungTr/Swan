@@ -3,6 +3,7 @@ buildscript {
     dependencies {
         classpath libs.kotlinPlugin
         classpath libs.androidPlugin
+        classpath libs.gradlePlugin.mavenPublish
     }
 }
 

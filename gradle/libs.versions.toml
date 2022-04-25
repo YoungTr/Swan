@@ -37,6 +37,9 @@ jline = { module = "jline:jline", version = "2.14.6" }
 
 gson = { module = "com.google.code.gson:gson", version = "2.9.0" }
 
+gradlePlugin-mavenPublish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.19.0" }
+
+
 
 
 [bundles]
