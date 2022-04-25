@@ -2,7 +2,6 @@ package com.bomber.swan.resource
 
 import android.app.Activity
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityResourceBinding
@@ -11,9 +10,10 @@ class ResourceActivity : AppCompatActivity() {
 
     companion object {
         private var activityLeak: Activity? = null
+        private var bitmap: Bitmap? = null
+
     }
 
-    lateinit var bitmap: Bitmap
 
     private val intArray = mutableListOf<Int>()
 
@@ -34,9 +34,13 @@ class ResourceActivity : AppCompatActivity() {
             intMap["Int:$it"] = it
         }
 
-        bitmap = BitmapFactory.decodeResource(resources, com.bomber.swan.R.mipmap.cat)
+        bitmap = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
 
         activityLeak = this
+
+        binding.text.setOnClickListener {
+
+        }
 
     }
 }

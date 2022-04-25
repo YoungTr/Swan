@@ -1,10 +1,19 @@
 package com.bomber.swan.resource.matrix.analyzer
 
 import android.content.Intent
+import android.os.Build
+import android.os.Debug
+import com.bomber.swan.resource.friendly.toMB
 import com.bomber.swan.resource.matrix.EventListener.Event.*
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded
+import com.bomber.swan.resource.matrix.internal.InternalSwanResource
 import com.bomber.swan.resource.matrix.internal.LeakDirectoryProvider
 import com.bomber.swan.util.SwanLog
+import com.bomber.swan.util.SystemInfo.javaHeap
+import com.bomber.swan.util.SystemInfo.memInfo
+import com.bomber.swan.util.SystemInfo.procStatus
+import com.bomber.swan.util.versionName
+import com.google.gson.Gson
 import shark.*
 import shark.HprofHeapGraph.Companion.openHeapGraph
 import java.io.File
@@ -165,6 +174,29 @@ object AndroidDebugHeapAnalyzer {
         val leakingObjectIds = mutableSetOf<Long>()
         val leakReasonTable = mutableMapOf<Long, String>()
 
+        val runningInfo = RunningInfo(
+            jvmMax = javaHeap.max.toMB().toString(),
+            jvmUsed = (javaHeap.total - javaHeap.free).toMB().toString(),
+            vss = procStatus.vssInKb.toMB().toString() + "mb",
+            pss = Debug.getPss().toMB().toString() + "mb",
+            // thread count
+            fdCount = (File("/proc/self/fd").listFiles()?.size ?: 0).toString(),
+            // thread list
+            // fd list
+            sdkInt = Build.VERSION.SDK_INT.toString(),
+            manufacture = Build.MANUFACTURER.toString(),
+            buildModel = Build.MODEL.toString(),
+            appVersion = InternalSwanResource.application.versionName(),
+            currentPage = "",
+            usageSeconds = "1",
+            nowTime = System.currentTimeMillis().toString(),
+            deviceMemTotal = memInfo.totalInKb.toMB().toString(),
+            deviceMemAvailable = memInfo.availableInKb.toMB().toString(),
+            dumpReason = "find leak",
+            analysisReason = ""
+        )
+        val heapReport = HeapReport(runningInfo)
+
         val activityHeapClass = graph.findClassByName(ACTIVITY_CLASS_NAME)
         val fragmentHeapClass = graph.findClassByName(ANDROIDX_FRAGMENT_CLASS_NAME)
         val bitmapHeapCass = graph.findClassByName(BITMAP_CLASS_NAME)
@@ -282,6 +314,15 @@ object AndroidDebugHeapAnalyzer {
                         leakingObjectIds.add(instance.objectId)
                         leakReasonTable[instance.objectId] =
                             "Bitmap size Over Threshold, $with x $height"
+
+                        val leakObject = LeakObject(
+                            className = instance.instanceClassName,
+                            size = (with * height).toString(),
+                            extDetail = "$with x $height",
+                            objectId = (instance.objectId and 0xffffffffL).toString()
+                        )
+
+                        heapReport.leakObjects.add(leakObject)
                     }
                 }
                 continue
@@ -294,7 +335,16 @@ object AndroidDebugHeapAnalyzer {
             ) {
                 updateClassObjectCounterMap(classObjectCounterMap, instanceClassId, false)
             }
+        }
 
+        // 关注class和对应instance数量，加入 json
+        for ((instanceId, objectCounter) in classObjectCounterMap) {
+            val heapClass = graph.findObjectById(instanceId).asClass
+            val classInfo = ClassInfo(
+                className = heapClass?.name,
+                instanceCount = objectCounter.allCounter.toString(),
+            )
+            heapReport.classInfos.add(classInfo)
         }
 
         // 查找基本类型数组
@@ -312,6 +362,13 @@ object AndroidDebugHeapAnalyzer {
                 leakingObjectIds.add(primitiveArray.objectId)
                 leakReasonTable[primitiveArray.objectId] =
                     "Primitive Array Size Over Threshold, $arraySize"
+                val leakObject = LeakObject(
+                    className = arrayName,
+                    size = arraySize.toString(),
+                    objectId = (primitiveArray.objectId and 0xffffffffL).toString(),
+                    extDetail = "primitive array"
+                )
+                heapReport.leakObjects.add(leakObject)
             }
         }
 
@@ -324,14 +381,22 @@ object AndroidDebugHeapAnalyzer {
                 val arrayName = objectArray.arrayClassName
                 SwanLog.d(TAG, "object array name $arrayName object id: ${objectArray.objectId}")
                 leakingObjectIds.add(objectArray.objectId)
+                val leakObject = LeakObject(
+                    className = arrayName,
+                    size = arraySize.toString(),
+                    objectId = (objectArray.objectId and 0xffffffffL).toString(),
+                    extDetail = "object array"
+                )
+                heapReport.leakObjects.add(leakObject)
             }
         }
 
+        val filterTime = System.currentTimeMillis()
 
+        heapReport.runningInfo.filterInstanceTime =
+            ((filterTime - startTime).toFloat() / 1000).toString()
 
-        SwanLog.d(TAG, "analyze spend ${System.currentTimeMillis() - startTime} ms")
-
-        SwanLog.d(TAG,"leakingObjectIds size: ${leakingObjectIds.size}")
+        SwanLog.d(TAG, "filter leaking object spend ${heapReport.runningInfo.filterInstanceTime} s")
 
         val analyzer = HeapAnalyzer(processEventListener)
         analyzer.analyze(
@@ -339,18 +404,17 @@ object AndroidDebugHeapAnalyzer {
             referenceMatchers = AndroidReferenceMatchers.appDefaults,
             leakingObjectIds = leakingObjectIds
         ).apply {
-            SwanLog.d(TAG,"applicationLeaks size: ${applicationLeaks.size}")
-            SwanLog.d(TAG,"libraryLeaks size: ${libraryLeaks.size}")
-            SwanLog.d(TAG,"unreachableObjects size: ${unreachableObjects.size}")
-
             // applicationLeaks
             for (applicationLeak in applicationLeaks) {
+                SwanLog.d(
+                    TAG,
+                    "shortDescription: ${applicationLeak.shortDescription}, signature: ${applicationLeak.signature}, same leak size: ${applicationLeak.leakTraces.size}"
+                )
                 val (gcRootType, referencePath, leakTraceObject) = applicationLeak.leakTraces[0]
                 val gcRoot = gcRootType.description
                 val labels = leakTraceObject.labels.toTypedArray()
-                // todo
-//                leakTraceObject.leakingStatusReason =
-//                    leakReasonTable[leakTraceObject.objectId].toString()
+                leakTraceObject.leakingStatusReason =
+                    leakReasonTable[leakTraceObject.objectId].toString()
 
                 SwanLog.i(
                     TAG, "GC Root:" + gcRoot
@@ -360,6 +424,15 @@ object AndroidDebugHeapAnalyzer {
                             + ", leaking reason:" + leakTraceObject.leakingStatusReason
                             + ", leaking obj:" + (leakTraceObject.objectId and 0xffffffffL)
                 )
+
+                val gcPath = GCPath(
+                    instanceCount = applicationLeak.leakTraces.size,
+                    leakReason = leakTraceObject.leakingStatusReason,
+                    gcRoot = gcRoot,
+                    signature = applicationLeak.signature
+                ).also {
+                    heapReport.gcPaths.add(it)
+                }
 
                 for (reference in referencePath) {
                     val referenceName = reference.referenceName
@@ -377,7 +450,26 @@ object AndroidDebugHeapAnalyzer {
                                 + ", referenceType:" + referenceType
                                 + ", declaredClassName:" + declaredClassName
                     )
+
+                    val pathItem = PathItem(
+                        reference = if (referenceDisplayName.startsWith("[")) {
+                            clazz
+                        } else {
+                            "$clazz.$referenceDisplayName"
+                        },
+                        referenceType = referenceType,
+                        declaredClass = declaredClassName
+                    )
+
+                    gcPath.paths.add(pathItem)
                 }
+                // 添加本身 trace path
+                gcPath.paths.add(
+                    PathItem(
+                        reference = leakTraceObject.className,
+                        referenceType = leakTraceObject.typeName
+                    )
+                )
 
             }
 
@@ -388,8 +480,8 @@ object AndroidDebugHeapAnalyzer {
                 val (gcRootType, referencePath, leakTraceObject) = libraryLeak.leakTraces[0]
                 val gcRoot = gcRootType.description
                 val labels = leakTraceObject.labels.toTypedArray()
-//                leakTraceObject.leakingStatusReason =
-//                    leakReasonTable[leakTraceObject.objectId].toString()
+                leakTraceObject.leakingStatusReason =
+                    leakReasonTable[leakTraceObject.objectId].toString()
 
                 SwanLog.i(
                     TAG, "GC Root:" + gcRoot
@@ -397,6 +489,15 @@ object AndroidDebugHeapAnalyzer {
                             + ", labels:" + labels.contentToString()
                             + ", leaking reason:" + leakTraceObject.leakingStatusReason
                 )
+
+                val gcPath = GCPath(
+                    instanceCount = libraryLeak.leakTraces.size,
+                    leakReason = leakTraceObject.leakingStatusReason,
+                    gcRoot = gcRoot,
+                    signature = libraryLeak.signature
+                ).also {
+                    heapReport.gcPaths.add(it)
+                }
 
                 // 添加索引到的trace path
                 for (reference in referencePath) {
@@ -416,9 +517,38 @@ object AndroidDebugHeapAnalyzer {
                                 + ", declaredClassName:" + declaredClassName
                     )
 
+                    val pathItem = PathItem(
+                        reference = if (referenceDisplayName.startsWith("[")) {
+                            clazz
+                        } else {
+                            "$clazz.$referenceDisplayName"
+                        },
+                        referenceType = referenceType,
+                        declaredClass = declaredClassName
+                    )
+
+                    gcPath.paths.add(pathItem)
+
                 }
 
+                // 添加本身 trace path
+                gcPath.paths.add(
+                    PathItem(
+                        reference = leakTraceObject.className,
+                        referenceType = leakTraceObject.typeName
+                    )
+                )
+
+                val analyzeTime = System.currentTimeMillis()
+                heapReport.runningInfo.findGCPathTime =
+                    ((analyzeTime - filterTime).toFloat() / 1000).toString()
+                SwanLog.d(TAG, "find gc path spend ${heapReport.runningInfo.findGCPathTime} m")
+
             }
+
+
+            val gson = Gson().toJson(heapReport)
+            SwanLog.d(TAG, "Analyze result\n$gson")
 
             return HeapAnalysisSuccess(
                 heapDumpFile,
@@ -435,39 +565,39 @@ object AndroidDebugHeapAnalyzer {
     }
 
 
-        private fun missingFileFailure(
-            heapDumpFile: File
-        ): HeapAnalysisFailure {
-            val deletedReason = LeakDirectoryProvider.hprofDeleteReason(heapDumpFile)
-            val exception = IllegalStateException(
-                "Hprof file $heapDumpFile missing, deleted because: $deletedReason"
-            )
-            return HeapAnalysisFailure(
-                heapDumpFile = heapDumpFile,
-                createdAtTimeMillis = System.currentTimeMillis(),
-                analysisDurationMillis = 0,
-                exception = HeapAnalysisException(exception)
-            )
-        }
-
+    private fun missingFileFailure(
+        heapDumpFile: File
+    ): HeapAnalysisFailure {
+        val deletedReason = LeakDirectoryProvider.hprofDeleteReason(heapDumpFile)
+        val exception = IllegalStateException(
+            "Hprof file $heapDumpFile missing, deleted because: $deletedReason"
+        )
+        return HeapAnalysisFailure(
+            heapDumpFile = heapDumpFile,
+            createdAtTimeMillis = System.currentTimeMillis(),
+            analysisDurationMillis = 0,
+            exception = HeapAnalysisException(exception)
+        )
     }
 
-    private fun updateClassObjectCounterMap(
-        classObCountMap: MutableMap<Long, ObjectCounter>,
-        instanceClassId: Long,
-        isLeak: Boolean
-    ): ObjectCounter {
-        val objectCounter = classObCountMap[instanceClassId] ?: ObjectCounter().also {
-            classObCountMap[instanceClassId] = it
-        }
+}
 
-        objectCounter.allCounter++
-
-        if (isLeak) {
-            objectCounter.leakCount++
-        }
-
-        return objectCounter
+private fun updateClassObjectCounterMap(
+    classObCountMap: MutableMap<Long, ObjectCounter>,
+    instanceClassId: Long,
+    isLeak: Boolean
+): ObjectCounter {
+    val objectCounter = classObCountMap[instanceClassId] ?: ObjectCounter().also {
+        classObCountMap[instanceClassId] = it
     }
 
-    data class ObjectCounter(var allCounter: Int = 0, var leakCount: Int = 0)
+    objectCounter.allCounter++
+
+    if (isLeak) {
+        objectCounter.leakCount++
+    }
+
+    return objectCounter
+}
+
+data class ObjectCounter(var allCounter: Int = 0, var leakCount: Int = 0)

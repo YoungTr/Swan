@@ -12,6 +12,7 @@ import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 import com.bomber.swan.util.Clock
 import com.bomber.swan.util.GcTrigger
 import com.bomber.swan.util.SwanLog
+import com.bomber.swan.util.SystemInfo
 import java.util.*
 
 class HeapDumpTrigger(
@@ -173,6 +174,7 @@ class HeapDumpTrigger(
             lastHeapDumpUptimeMillis = clock.uptimeMillis()
             objectWatcher.clearObjectsWatchedBefore(heapDumpUptimeMillis)
             SwanLog.d(TAG, "dump heap cast $durationMills ms")
+            SystemInfo.refresh()
             // waiting to analyse
             InternalSwanResource.analyzeHeap(
                 EventListener.Event.HeapDump(

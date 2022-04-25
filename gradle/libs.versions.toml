@@ -35,5 +35,8 @@ robolectric = { module = "org.robolectric:robolectric", version = "4.0-alpha-3" 
 clikt = { module = "com.github.ajalt:clikt", version = "2.3.0" }
 jline = { module = "jline:jline", version = "2.14.6" }
 
+gson = { module = "com.google.code.gson:gson", version = "2.9.0" }
+
+
 
 [bundles]

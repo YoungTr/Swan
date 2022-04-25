@@ -53,6 +53,7 @@ dependencies {
 
     api project(':swan-android-lib')
     implementation libs.kotlin.stdlib
+    implementation libs.gson
     implementation libs.androidX.work.multiprocess
     implementation libs.androidX.work.runtime
     implementation project(':swan-third-libs:shark-libs:shark')

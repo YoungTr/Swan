@@ -24,7 +24,7 @@ data class LeakTraceObject(
    */
   val labels: Set<String>,
   val leakingStatus: LeakingStatus,
-  val leakingStatusReason: String,
+  var leakingStatusReason: String,
   /**
    * The minimum number of bytes which would be freed if all references to this object were
    * released. Not null only if the retained heap size was computed AND [leakingStatus] is

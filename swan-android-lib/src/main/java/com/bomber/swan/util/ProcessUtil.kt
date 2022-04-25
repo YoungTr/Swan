@@ -24,6 +24,14 @@ fun Context.isMainProcess(): Boolean {
     return getProcessName(this).equals(_processNmae)
 }
 
+fun Context.versionName(): String {
+    return try {
+        this.packageManager.getPackageInfo(this.packageName, 0).versionName
+    } catch (e: Throwable) {
+        "NA"
+    }
+}
+
 @SuppressLint("PrivateApi", "ObsoleteSdkInt", "DiscouragedPrivateApi")
 fun getProcessName(context: Context): String? {
     if (::_processNmae.isInitialized) return _processNmae

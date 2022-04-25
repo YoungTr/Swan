@@ -1,5 +1,7 @@
 package com.bomber.swan
 
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        requestPermissions(arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE), 1)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.sampleText.setOnClickListener {
@@ -39,20 +43,25 @@ class MainActivity : AppCompatActivity() {
                     File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-24_14-58-44_805.hprof")
 
 
-                backgroundHandler.post {
-                    AndroidDebugHeapAnalyzer.runAnalysisBlocking(
-                        EventListener.Event.HeapDump(
-                            UUID.randomUUID().toString(),
-                            hprofFile,
-                            System.currentTimeMillis(),
-                            reason = "analyzer"
-                        ),
-                        processEventListener = { step ->
-                            SwanLog.d(TAG, "step: ${step.step}")
-                        }
-                    )
+                kotlin.runCatching {
+                    val hprofFile =
+                        File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-24_14-58-44_805.hprof")
 
-                    // by leak canary
+
+                    backgroundHandler.post {
+                        AndroidDebugHeapAnalyzer.runAnalysisBlocking(
+                            EventListener.Event.HeapDump(
+                                UUID.randomUUID().toString(),
+                                hprofFile,
+                                System.currentTimeMillis(),
+                                reason = "analyzer"
+                            ),
+                            processEventListener = { step ->
+                                SwanLog.d(TAG, "step: ${step.step}")
+                            }
+                        )
+
+                        // by leak canary
 //                    val heapAnalyzer = HeapAnalyzer { step ->
 //                        SwanLog.d(TAG, "step: ${step.name}")
 //                    }
@@ -72,11 +81,12 @@ class MainActivity : AppCompatActivity() {
 //                    SwanLog.d(TAG, "heapAnalysis:\n$heapAnalysisSuccess")
 
 
+                    }
+                }.onFailure { throwable ->
+                    SwanLog.d(TAG, "parse hprof fail: $throwable")
                 }
-            }.onFailure { throwable ->
-                SwanLog.d(TAG, "parse hprof fail: $throwable")
-            }
 
+            }
         }
     }
 
