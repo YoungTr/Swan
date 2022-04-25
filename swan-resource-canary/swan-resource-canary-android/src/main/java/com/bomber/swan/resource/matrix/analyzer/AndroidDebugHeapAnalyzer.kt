@@ -538,13 +538,12 @@ object AndroidDebugHeapAnalyzer {
                         referenceType = leakTraceObject.typeName
                     )
                 )
-
-                val analyzeTime = System.currentTimeMillis()
-                heapReport.runningInfo.findGCPathTime =
-                    ((analyzeTime - filterTime).toFloat() / 1000).toString()
-                SwanLog.d(TAG, "find gc path spend ${heapReport.runningInfo.findGCPathTime} m")
-
             }
+
+            val analyzeTime = System.currentTimeMillis()
+            heapReport.runningInfo.findGCPathTime =
+                ((analyzeTime - filterTime).toFloat() / 1000).toString()
+            SwanLog.d(TAG, "find gc path spend ${heapReport.runningInfo.findGCPathTime} m")
 
 
             val gson = Gson().toJson(heapReport)

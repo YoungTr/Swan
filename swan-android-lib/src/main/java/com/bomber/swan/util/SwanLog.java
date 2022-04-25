@@ -39,7 +39,10 @@ public class SwanLog {
         @Override
         public void d(final String tag, final String format, final Object... params) {
             String log = (params == null || params.length == 0) ? format : String.format(format, params);
-            android.util.Log.d(tag, log);
+            final int chunkSize = 2048;
+            for (int i = 0; i < log.length(); i += chunkSize) {
+                android.util.Log.d(tag, log.substring(i, Math.min(i + chunkSize, log.length())));
+            }
         }
 
         @Override

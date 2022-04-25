@@ -57,7 +57,7 @@ data class GCPath(
 data class PathItem(
     val reference: String,
     val referenceType: String,
-    val declaredClass: String = ""
+    val declaredClass: String? = null
 )
 
 data class ClassInfo(
