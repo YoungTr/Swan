@@ -1,21 +1,22 @@
 package com.bomber.swan.resource.matrix.analyzer
 
-import android.content.Intent
 import android.os.Build
 import android.os.Debug
 import com.bomber.swan.resource.friendly.toMB
-import com.bomber.swan.resource.matrix.EventListener.Event.*
-import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded
+import com.bomber.swan.resource.matrix.EventListener.Event.HeapAnalysisProgress
+import com.bomber.swan.resource.matrix.EventListener.Event.HeapDump
 import com.bomber.swan.resource.matrix.internal.InternalSwanResource
-import com.bomber.swan.resource.matrix.internal.LeakDirectoryProvider
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.SystemInfo.javaHeap
 import com.bomber.swan.util.SystemInfo.memInfo
 import com.bomber.swan.util.SystemInfo.procStatus
 import com.bomber.swan.util.versionName
 import com.google.gson.Gson
-import shark.*
+import shark.AndroidReferenceMatchers
+import shark.HeapAnalyzer
 import shark.HprofHeapGraph.Companion.openHeapGraph
+import shark.HprofRecordTag
+import shark.OnAnalysisProgressListener
 import java.io.File
 
 /**
@@ -59,97 +60,39 @@ object AndroidDebugHeapAnalyzer {
 
     fun runAnalysisBlocking(
         heapDumped: HeapDump,
-        isCanceled: () -> Boolean = { false },
         processEventListener: (HeapAnalysisProgress) -> Unit
-    ): HeapAnalysisDone<*> {
+    ): Analysis {
         val processListener = OnAnalysisProgressListener { step ->
             val percent = (step.ordinal * 1.0) / OnAnalysisProgressListener.Step.values().size
             processEventListener(HeapAnalysisProgress(heapDumped.uniqueId, step, percent))
         }
 
         val heapDumpFile = heapDumped.file
+        val jsonFile = heapDumped.jsonFile
         val heapDumpDurationMillis = heapDumped.durationMillis
         val heapDumpReason = heapDumped.reason
 
-        SwanLog.d(TAG, "runAnalysisBlocking")
-
-
         val heapAnalysis = if (heapDumpFile.exists()) {
-            analyzeHeap(heapDumpFile, processListener, isCanceled)
-        } else {
-            missingFileFailure(heapDumpFile)
-        }
-
-        val fullHeapAnalysis = when (heapAnalysis) {
-            is HeapAnalysisSuccess -> heapAnalysis.copy(
-                dumpDurationMillis = heapDumpDurationMillis,
-                metadata = heapAnalysis.metadata + ("Heap dump reason" to heapDumpReason)
+            analyzeHeap(
+                heapDumpFile,
+                jsonFile,
+                heapDumpDurationMillis,
+                heapDumpReason,
+                processListener
             )
-            is HeapAnalysisFailure -> {
-                val failureCause = heapAnalysis.exception.cause!!
-                if (failureCause is OutOfMemoryError) {
-                    heapAnalysis.copy(
-                        dumpDurationMillis = heapDumpDurationMillis,
-                        exception = HeapAnalysisException(
-                            RuntimeException(
-                                """
-              Not enough memory to analyze heap. You can:
-              - Kill the app then restart the analysis from the LeakCanary activity.
-              - Increase the memory available to your debug app with largeHeap=true: https://developer.android.com/guide/topics/manifest/application-element#largeHeap
-              - Set up LeakCanary to run in a separate process: https://square.github.io/leakcanary/recipes/#running-the-leakcanary-analysis-in-a-separate-process
-              - Download the heap dump from the LeakCanary activity then run the analysis from your computer with shark-cli: https://square.github.io/leakcanary/shark/#shark-cli
-            """.trimIndent(), failureCause
-                            )
-                        )
-                    )
-                } else {
-                    heapAnalysis.copy(dumpDurationMillis = heapDumpDurationMillis)
-                }
-            }
+        } else {
+            AnalysisFailure("heap dump file not exist")
         }
-
-        // TODO: process dump
-
-//        val analysisDoneEvent = when (fullHeapAnalysis) {
-//            is HeapAnalysisSuccess -> {
-//                val showIntent = LeakActivity.createSuccessIntent(application, id)
-//                val leakSignatures = fullHeapAnalysis.allLeaks.map { it.signature }.toSet()
-//                val leakSignatureStatuses = LeakTable.retrieveLeakReadStatuses(db, leakSignatures)
-//                val unreadLeakSignatures = leakSignatureStatuses.filter { (_, read) ->
-//                    !read
-//                }.keys
-//                    // keys returns LinkedHashMap$LinkedKeySet which isn't Serializable
-//                    .toSet()
-//                EventListener.Event.HeapAnalysisDone.HeapAnalysisSucceeded(
-//                    heapDumped.uniqueId,
-//                    fullHeapAnalysis,
-//                    unreadLeakSignatures,
-//                    showIntent
-//                )
-//            }
-//            is HeapAnalysisFailure -> {
-//                val showIntent = LeakActivity.createFailureIntent(application, id)
-//                EventListener.Event.HeapAnalysisDone.HeapAnalysisFailed(
-//                    heapDumped.uniqueId,
-//                    fullHeapAnalysis,
-//                    showIntent
-//                )
-//            }
-//        }
-
-        return HeapAnalysisSucceeded(
-            heapDumped.uniqueId,
-            fullHeapAnalysis as HeapAnalysisSuccess,
-            setOf(),
-            Intent()
-        )
+        return heapAnalysis
     }
 
     private fun analyzeHeap(
         heapDumpFile: File,
+        jsonFile: File,
+        heapDumpDurationMillis: Long,
+        heapDumpReason: String,
         processEventListener: OnAnalysisProgressListener,
-        canceled: () -> Boolean
-    ): HeapAnalysis {
+    ): Analysis {
 
         val startTime = System.currentTimeMillis()
 
@@ -189,10 +132,11 @@ object AndroidDebugHeapAnalyzer {
             appVersion = InternalSwanResource.application.versionName(),
             currentPage = "",
             usageSeconds = "1",
+            dumpTime = heapDumpDurationMillis.toString(),
             nowTime = System.currentTimeMillis().toString(),
             deviceMemTotal = memInfo.totalInKb.toMB().toString(),
             deviceMemAvailable = memInfo.availableInKb.toMB().toString(),
-            dumpReason = "find leak",
+            dumpReason = heapDumpReason,
             analysisReason = ""
         )
         val heapReport = HeapReport(runningInfo)
@@ -548,35 +492,11 @@ object AndroidDebugHeapAnalyzer {
 
             val gson = Gson().toJson(heapReport)
             SwanLog.d(TAG, "Analyze result\n$gson")
+            jsonFile.writeText(gson)
 
-            return HeapAnalysisSuccess(
-                heapDumpFile,
-                0,
-                0,
-                0,
-                mapOf(),
-                listOf(),
-                listOf(),
-                listOf()
-            )
+            return AnalysisSuccess(gson)
 
         }
-    }
-
-
-    private fun missingFileFailure(
-        heapDumpFile: File
-    ): HeapAnalysisFailure {
-        val deletedReason = LeakDirectoryProvider.hprofDeleteReason(heapDumpFile)
-        val exception = IllegalStateException(
-            "Hprof file $heapDumpFile missing, deleted because: $deletedReason"
-        )
-        return HeapAnalysisFailure(
-            heapDumpFile = heapDumpFile,
-            createdAtTimeMillis = System.currentTimeMillis(),
-            analysisDurationMillis = 0,
-            exception = HeapAnalysisException(exception)
-        )
     }
 
 }

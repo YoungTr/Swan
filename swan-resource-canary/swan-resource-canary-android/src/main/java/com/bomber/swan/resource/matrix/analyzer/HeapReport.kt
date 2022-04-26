@@ -35,6 +35,7 @@ data class RunningInfo(
     val appVersion: String,
     val currentPage: String,
     val usageSeconds: String,
+    val dumpTime: String,
     val nowTime: String,
     val deviceMemTotal: String,
     val deviceMemAvailable: String,

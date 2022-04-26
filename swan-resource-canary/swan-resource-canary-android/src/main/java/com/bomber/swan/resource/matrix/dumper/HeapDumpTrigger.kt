@@ -6,6 +6,7 @@ import com.bomber.swan.resource.friendly.measureDurationMillis
 import com.bomber.swan.resource.matrix.EventListener
 import com.bomber.swan.resource.matrix.config.ResourceConfig
 import com.bomber.swan.resource.matrix.internal.InternalSwanResource
+import com.bomber.swan.resource.matrix.internal.hprofToJson
 import com.bomber.swan.resource.matrix.watcher.KeyedWeakReference
 import com.bomber.swan.resource.matrix.watcher.ObjectWatcher
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
@@ -13,6 +14,8 @@ import com.bomber.swan.util.Clock
 import com.bomber.swan.util.GcTrigger
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.SystemInfo
+import java.io.File
+import java.lang.Thread.sleep
 import java.util.*
 
 class HeapDumpTrigger(
@@ -96,7 +99,6 @@ class HeapDumpTrigger(
         val now = clock.uptimeMillis()
         val elapsedSinceLastDumpMillis = now - lastHeapDumpUptimeMillis
         if (elapsedSinceLastDumpMillis < WAIT_BETWEEN_HEAP_DUMPS_MILLIS) {
-            // TODO:  notification if need dump
             scheduleRetainedObjectCheck(WAIT_BETWEEN_HEAP_DUMPS_MILLIS - elapsedSinceLastDumpMillis)
             return
         }
@@ -139,7 +141,6 @@ class HeapDumpTrigger(
                 scheduleRetainedObjectCheck(delayMillis = WAIT_FOR_OBJECT_THRESHOLD_MILLIS)
                 return true
             }
-
         }
 
         return false
@@ -167,6 +168,8 @@ class HeapDumpTrigger(
                 configProvider().heapDumper.dumpHeap(newHeapFile)
             }
 
+            sleep(1000)
+
             if (newHeapFile.length() == 0L) {
                 throw java.lang.RuntimeException("Dumped heap file is 0 byte length")
             }
@@ -180,11 +183,13 @@ class HeapDumpTrigger(
                 EventListener.Event.HeapDump(
                     UUID.randomUUID().toString(),
                     newHeapFile,
+                    File(newHeapFile.absolutePath.hprofToJson()),
                     durationMills,
                     reason = "analyzer"
                 )
             )
         } catch (throwable: Throwable) {
+            SwanLog.e(TAG, "dump heap error: ${throwable.message}")
             if (retry) {
                 scheduleRetainedObjectCheck(WAIT_AFTER_DUMP_FAILED_MILLIS)
             }
@@ -197,7 +202,6 @@ class HeapDumpTrigger(
     companion object {
         internal const val WAIT_AFTER_DUMP_FAILED_MILLIS = 5_000L
         private const val WAIT_FOR_OBJECT_THRESHOLD_MILLIS = 2_000L
-        private const val DISMISS_NO_RETAINED_OBJECT_NOTIFICATION_MILLIS = 30_000L
         private const val WAIT_BETWEEN_HEAP_DUMPS_MILLIS = 60_000L
     }
 

@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
                             EventListener.Event.HeapDump(
                                 UUID.randomUUID().toString(),
                                 hprofFile,
+                                File(hprofFile.absolutePath.replace(".hprof", ".json")),
                                 System.currentTimeMillis(),
                                 reason = "analyzer"
                             ),
@@ -61,24 +62,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         )
 
-                        // by leak canary
-//                    val heapAnalyzer = HeapAnalyzer { step ->
-//                        SwanLog.d(TAG, "step: ${step.name}")
-//                    }
-//
-//                    val graph = hprofFile.openHeapGraph()
-//
-//                    val heapAnalysisSuccess = heapAnalyzer.analyze(
-//                        heapDumpFile = hprofFile,
-//                        graph = graph,
-//                        leakingObjectFinder = KeyedWeakReferenceFinder,
-//                        referenceMatchers = AndroidReferenceMatchers.appDefaults,
-//                        computeRetainedHeapSize = true,
-//                        objectInspectors = AndroidObjectInspectors.appDefaults,
-//                        metadataExtractor = AndroidMetadataExtractor
-//                    )
-//
-//                    SwanLog.d(TAG, "heapAnalysis:\n$heapAnalysisSuccess")
 
 
                     }

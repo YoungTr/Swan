@@ -1,11 +1,6 @@
 package com.bomber.swan.resource.matrix.internal
 
-import android.Manifest
-import android.annotation.TargetApi
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import android.os.Environment
 import com.bomber.swan.util.SwanLog
 import java.io.File
 import java.io.FilenameFilter
@@ -19,25 +14,17 @@ import java.util.*
 internal class LeakDirectoryProvider(
     context: Context,
     private val maxStoredHeapDumps: () -> Int,
-    private val requestExternalStoragePermission: () -> Boolean
+    private val rootDirectory: ((String) -> File)? = null,
 ) {
 
     private val context: Context = context.applicationContext
 
     fun listFiles(filter: FilenameFilter): MutableList<File> {
-        if (!hasStoragePermission() && requestExternalStoragePermission()) {
-            requestWritePermissionNotification()
-        }
 
         val files = ArrayList<File>()
-        val externalFiles = externalStorageDirectory().listFiles(filter)
+        val externalFiles = storageDirectory().listFiles(filter)
         if (externalFiles != null) {
             files.addAll(files)
-        }
-
-        val appFiles = appStorageDirectory().listFiles(filter)
-        if (appFiles != null) {
-            files.addAll(appFiles)
         }
         return files
     }
@@ -45,37 +32,10 @@ internal class LeakDirectoryProvider(
     fun newHeapDumpFile(): File? {
         cleanupOldHeapDumps()
 
-        var storageDirectory = externalStorageDirectory()
+        val storageDirectory = storageDirectory()
+
         if (!directoryWritableAfterMkdirs(storageDirectory)) {
-            if (!hasStoragePermission()) {
-                if (requestExternalStoragePermission()) {
-                    SwanLog.d(
-                        TAG, "WRITE_EXTERNAL_STORAGE permission not granted, requesting"
-                    )
-                    requestWritePermissionNotification()
-                } else {
-                    SwanLog.d(TAG, "WRITE_EXTERNAL_STORAGE permission not granted, ignoring")
-                }
-            } else {
-                val state = Environment.getExternalStorageState()
-                if (Environment.MEDIA_MOUNTED != state) {
-                    SwanLog.d(TAG, "External storage not mounted, state: $state")
-                } else {
-                    SwanLog.d(
-                        TAG,
-                        "Could not create heap dump directory in external storage: [${storageDirectory.absolutePath}]"
-                    )
-                }
-            }
-            // Fallback to app storage
-            storageDirectory = appStorageDirectory()
-            if (!directoryWritableAfterMkdirs(storageDirectory)) {
-                SwanLog.d(
-                    TAG,
-                    "Could not create heap dump directory in app storage: [${storageDirectory.absolutePath}]"
-                )
-                return null
-            }
+            return null
         }
 
         val fileName =
@@ -83,42 +43,17 @@ internal class LeakDirectoryProvider(
         return File(storageDirectory, fileName)
     }
 
-    private fun requestWritePermissionNotification() {
-        // todo requestPermission
+    private fun storageDirectory(): File {
+        return rootDirectory?.invoke(RESOURCE_DIRECTORY)
+            ?: File(context.cacheDir, RESOURCE_DIRECTORY)
 
-    }
-
-    @Suppress("DEPRECATION")
-    private fun externalStorageDirectory(): File {
-        val downloadsDirectory =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        return File(downloadsDirectory, "swanresource-" + context.packageName)
-    }
-
-    private fun appStorageDirectory(): File {
-        val appFilesDirectory = context.cacheDir
-        return File(appFilesDirectory, "swanresource")
-    }
-
-
-    @TargetApi(Build.VERSION_CODES.M)
-    fun hasStoragePermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true
-        }
-        // Once true, this won't change for the life of the process so we can cache it.
-        if (writeExternalStorageGranted) {
-            return true
-        }
-        writeExternalStorageGranted =
-            context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        return writeExternalStorageGranted
     }
 
     private fun directoryWritableAfterMkdirs(directory: File): Boolean {
         val success = directory.mkdirs()
         return (success || directory.exists()) && directory.canWrite()
     }
+
 
     private fun cleanupOldHeapDumps() {
         val hprofFiles = listFiles { _, name ->
@@ -142,38 +77,27 @@ internal class LeakDirectoryProvider(
             for (i in 0 until filesToRemove) {
                 val path = hprofFiles[i].absolutePath
                 val deleted = hprofFiles[i].delete()
-                if (deleted) {
-                    filesDeletedTooOld += path
-                } else {
+                if (!deleted) {
                     SwanLog.d(TAG, "Could not delete old hprof file ${hprofFiles[i].path}")
+                }
+                File(path.hprofToJson()).apply {
+                    if (exists())
+                        delete()
                 }
             }
         }
     }
 
-
     companion object {
-
         private const val TAG = "Swan.DirectoryProvider"
-
-        @Volatile
-        private var writeExternalStorageGranted: Boolean = false
-
-        @Volatile
-        private var permissionNotificationDisplayed: Boolean = false
-
-        private val filesDeletedTooOld = mutableListOf<String>()
-        val filesDeletedRemoveLeak = mutableListOf<String>()
-
-        private const val HPROF_SUFFIX = ".hprof"
-
-        fun hprofDeleteReason(file: File): String {
-            val path = file.absolutePath
-            return when {
-                filesDeletedTooOld.contains(path) -> "older than all other hprof files"
-                filesDeletedRemoveLeak.contains(path) -> "leak manually removed"
-                else -> "unknown"
-            }
-        }
+        private const val RESOURCE_DIRECTORY = "resource"
     }
 }
+
+private const val HPROF_SUFFIX = ".hprof"
+private const val JSON_SUFFIX = ".json"
+
+internal fun String.hprofToJson() = replace(
+    HPROF_SUFFIX,
+    JSON_SUFFIX
+)

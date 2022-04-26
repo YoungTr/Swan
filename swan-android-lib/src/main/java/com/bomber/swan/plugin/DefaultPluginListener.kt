@@ -28,6 +28,6 @@ object DefaultPluginListener : PluginListener {
     }
 
     override fun onReportIssue(issue: Issue) {
-        SwanLog.i(TAG, "report issue content: %s", issue ?: "")
+        SwanLog.i(TAG, "report issue $issue")
     }
 }

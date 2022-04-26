@@ -9,6 +9,8 @@ import android.os.SystemClock
 import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapDump
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
+import com.bomber.swan.resource.matrix.analyzer.AnalysisFailure
+import com.bomber.swan.resource.matrix.analyzer.AnalysisSuccess
 import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
 import com.bomber.swan.resource.matrix.dumper.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
@@ -55,8 +57,6 @@ internal object InternalSwanResource : OnObjectRetainedListener {
     fun init(application: Application) {
         _application = application
 
-        checkRunningInDebuggableBuild()
-
         AppWatcher.objectWatcher.addOnObjectRetainedListener(this)
 
         val gcTrigger = GcTrigger.Default
@@ -86,8 +86,6 @@ internal object InternalSwanResource : OnObjectRetainedListener {
         val appContext = context.applicationContext
         return LeakDirectoryProvider(appContext, {
             ResourceMatrixPlugin.config.maxStoredHeapDumps
-        }, {
-            ResourceMatrixPlugin.config.requestWriteExternalStoragePermission
         })
     }
 
@@ -106,15 +104,25 @@ internal object InternalSwanResource : OnObjectRetainedListener {
         })
     }
 
-    private fun checkRunningInDebuggableBuild() {
-
-    }
-
     fun analyzeHeap(heapDump: HeapDump) {
         SwanLog.d(TAG, "analyzeHeap: ${heapDump.file}")
         globalHandler.post {
-            AndroidDebugHeapAnalyzer.runAnalysisBlocking(heapDump) { process ->
-                SwanLog.d(TAG, "process: ${process.progressPercent}")
+            val analysis =
+                AndroidDebugHeapAnalyzer.runAnalysisBlocking(heapDump) { process ->
+                    SwanLog.d(TAG, "process: ${process.progressPercent}")
+                }
+            when (analysis) {
+                is AnalysisFailure -> {
+                    SwanLog.d(TAG, "run analysis fail, need retry?")
+                }
+                is AnalysisSuccess -> {
+                    val resultCallback = ResourceMatrixPlugin.config.resultCallback
+                    resultCallback.report(
+                        heapDump.file.absolutePath,
+                        heapDump.jsonFile.absolutePath,
+                        analysis.result
+                    )
+                }
             }
         }
     }

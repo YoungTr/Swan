@@ -36,6 +36,7 @@ fun interface EventListener {
         class HeapDump(
             uniqueId: String,
             val file: File,
+            val jsonFile: File,
             val durationMillis: Long,
             val reason: String
         ) : Event(uniqueId)
