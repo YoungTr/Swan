@@ -23,6 +23,8 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 androidX-work-runtime = { module = "androidx.work:work-runtime", version.ref = "workManager" }
 androidX-work-multiprocess = { module = "androidx.work:work-multiprocess", version.ref = "workManager" }
 
+androidX-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.1" }
+
 okio2 = { module = "com.squareup.okio:okio", version = "2.2.2" }
 okio1 = { module = "com.squareup.okio:okio", version = "1.14.0" }
 
@@ -36,6 +38,8 @@ clikt = { module = "com.github.ajalt:clikt", version = "2.3.0" }
 jline = { module = "jline:jline", version = "2.14.6" }
 
 gson = { module = "com.google.code.gson:gson", version = "2.9.0" }
+
+core-ktx = { module = "androidx.core:core-ktx", version = "1.7.0" }
 
 gradlePlugin-mavenPublish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.19.0" }
 
