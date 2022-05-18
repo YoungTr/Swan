@@ -18,5 +18,6 @@ class SwanPlugin : Plugin<Project> {
         project.afterEvaluate {
 
         }
+
     }
 }
