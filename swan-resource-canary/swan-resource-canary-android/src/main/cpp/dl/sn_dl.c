@@ -69,6 +69,7 @@ static int sn_dl_find_map_start(sn_dl_t *self, const char *pathname) {
     char *p;
     int r = SWAN_ERRNO_NOTFND;
 
+    // https://www.cnblogs.com/arnoldlu/p/10272466.html
     if (NULL == (f = fopen("/proc/self/maps", "r"))) return SWAN_ERRNO_SYS;
     while (fgets(line, sizeof(line), f)) {
         if (2 !=
