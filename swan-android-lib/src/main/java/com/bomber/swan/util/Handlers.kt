@@ -26,6 +26,10 @@ fun newHandlerThread(name: String, priority: Int = Thread.NORM_PRIORITY): Handle
     return handlerThread
 }
 
+/**
+ * globalHandler 只允许执行一些轻量的工作
+ * heavy work 使用 [newHandlerThread] 创建新的 thread
+ */
 val globalHandler: Handler by lazy {
     val handlerThread = newHandlerThread("global")
     Handler(handlerThread.looper)

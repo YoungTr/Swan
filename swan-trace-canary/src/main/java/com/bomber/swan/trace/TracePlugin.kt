@@ -1,4 +1,4 @@
-package com.bomber.swan.trace.core
+package com.bomber.swan.trace
 
 import com.bomber.swan.plugin.Plugin
 
