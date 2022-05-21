@@ -27,7 +27,7 @@ import java.io.InputStreamReader
 import java.nio.charset.Charset
 
 object SystemInfo {
-    private const val TAG = "OOMMonitor_SystemInfo"
+    private const val TAG = "Swan.SystemInfo"
 
     private val VSS_REGEX = "VmSize:\\s*(\\d+)\\s*kB".toRegex()
     private val RSS_REGEX = "VmRSS:\\s*(\\d+)\\s*kB".toRegex()
@@ -46,6 +46,9 @@ object SystemInfo {
 
     var javaHeap = JavaHeap()
     var lastJavaHeap = JavaHeap()
+
+    val procStat
+        get() = readProcStat()
 
     //selinux权限问题，先注释掉
     //var dmaZoneInfo: ZoneInfo = ZoneInfo()
@@ -128,6 +131,20 @@ object SystemInfo {
         )
     }
 
+    fun readProcStat(): ProcStat {
+        val stat = ProcStat()
+        val content = File("/proc/self/stat").bufferedReader().use { it.readText() }.trim()
+        content.split(" ").apply {
+            if (size >= 19) {
+                stat.priority = this[17].trim().toInt()
+                stat.nice = this[18].trim().toInt()
+            }
+        }
+
+        SwanLog.d(TAG, "proc stat: $stat")
+        return stat
+    }
+
     data class ProcStatus(var thread: Int = 0, var vssInKb: Int = 0, var rssInKb: Int = 0)
 
     data class MemInfo(
@@ -139,6 +156,8 @@ object SystemInfo {
         var max: Long = 0, var total: Long = 0, var free: Long = 0,
         var used: Long = 0, var rate: Float = 0f
     )
+
+    data class ProcStat(var priority: Int = 0, var nice: Int = 0)
 
     private fun Regex.matchValue(s: String) = matchEntire(s.trim())
         ?.groupValues?.getOrNull(1)?.toInt() ?: 0

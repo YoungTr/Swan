@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Swan">
         <activity
+            android:name=".trace.TraceActivity"
+            android:exported="false" />
+        <activity
             android:name=".resource.ResourceActivity"
             android:exported="false" />
         <activity

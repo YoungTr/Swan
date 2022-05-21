@@ -15,6 +15,7 @@ import android.os.SystemClock;
 import androidx.annotation.WorkerThread;
 
 import com.bomber.swan.util.SwanLog;
+import com.bomber.swan.util.SystemInfo;
 
 public class AppMethodBeat implements BeatLifecycle {
 
@@ -85,6 +86,7 @@ public class AppMethodBeat implements BeatLifecycle {
                 while (!isPauseUpdateTime && status > STATUS_STOPPED) {
                     sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;
                     // 睡眠 5ms 更新 diff time
+                    // 不用一直循环更新时间操作
                     SystemClock.sleep(TIME_UPDATE_CYCLE_MS);
                 }
                 synchronized (updateTimeLock) {
@@ -98,6 +100,7 @@ public class AppMethodBeat implements BeatLifecycle {
 
     @Override
     public void onStart() {
+        SystemInfo.INSTANCE.getProcStat();
         synchronized (statusLock) {
             if (status < STATUS_STARTED && status >= STATUS_EXPIRED_START) {
                 sHandler.removeCallbacks(checkStartExpiredRunnable);
@@ -138,6 +141,110 @@ public class AppMethodBeat implements BeatLifecycle {
         return status >= STATUS_READY;
     }
 
+    private static void realExecute() {
+        SwanLog.i(TAG, "[realExecute] timestamp: %s", System.currentTimeMillis());
+        sCurrentDiffTime = SystemClock.uptimeMillis();
+
+        sHandler.removeCallbacksAndMessages(null);
+        sHandler.postDelayed(updateDiffTimeRunnable, TIME_UPDATE_CYCLE_MS);
+        sHandler.postDelayed(checkStartExpiredRunnable = () -> {
+            synchronized (statusLock) {
+                SwanLog.i(TAG, "[startExpired] timestamp: %s, status: %s", System.currentTimeMillis(), status);
+                if (status == STATUS_DEFAULT || status == STATUS_READY) {
+                    status = STATUS_EXPIRED_START;
+                }
+            }
+        }, DEFAULT_RELEASE_BUFFER_DELAY);
+    }
+
+    private static void dispatchBegin() {
+        sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;
+        isPauseUpdateTime = false;
+
+        synchronized (updateTimeLock) {
+            updateTimeLock.notify();
+        }
+    }
+
+    private static void dispatchEnd() {
+        isPauseUpdateTime = true;
+    }
+
+    /**
+     * hook method when it's called in
+     *
+     * @param methodId
+     */
+    public static void i(int methodId) {
+        if (status <= STATUS_STOPPED) return;
+        if (methodId >= METHOD_ID_MAX) return;
+        if (status == STATUS_DEFAULT) {
+            synchronized (statusLock) {
+                if (status == STATUS_DEFAULT) {
+                    realExecute();
+                    status = STATUS_READY;
+                }
+            }
+        }
+
+        long threadId = Thread.currentThread().getId();
+        if (threadId == sMainThreadId) {
+            if (assertIn) {
+                SwanLog.e(TAG, "ERROR!!! AppMethodBeat.i Recursive calls!!!");
+                return;
+            }
+            assertIn = true;
+            if (sIndex >= BUFFER_SIZE) {
+                sIndex = 0;
+            }
+            SwanLog.d(TAG, "in " + methodId + " index: " + sIndex);
+            mergeData(methodId, sIndex, true);
+            ++sIndex;
+            assertIn = false;
+        }
+    }
+
+    /**
+     * hook method when it's called out
+     *
+     * @param methodId
+     */
+    public static void o(int methodId) {
+        if (status <= STATUS_STOPPED) return;
+        if (methodId >= METHOD_ID_MAX) return;
+        long threadId = Thread.currentThread().getId();
+        if (threadId == sMainThreadId) {
+            if (sIndex >= BUFFER_SIZE) {
+                sIndex = 0;
+            }
+            SwanLog.d(TAG, "out " + methodId + " index: " + sIndex);
+            mergeData(methodId, sIndex, false);
+            ++sIndex;
+        }
+    }
+
+    private static void mergeData(int methodId, int index, boolean isIn) {
+        if (methodId == METHOD_ID_DISPATCH) {
+            sCurrentDiffTime = SystemClock.uptimeMillis() - sDiffTime;
+        }
+
+        try {
+
+            long trueId = 0L;
+            if (isIn) {
+                trueId |= 1L << 63;
+            }
+            trueId |= (long) methodId << 43;
+            trueId |= sCurrentDiffTime & 0x7FFFFFFFFFFL;
+            sBuffer[index] = trueId;
+            checkPileup(index);
+            sLastIndex = index;
+
+        } catch (Throwable t) {
+            SwanLog.e(TAG, t.getMessage());
+        }
+    }
+
     public static AppMethodBeat getInstance() {
         return Holder.INSTANCE;
     }
@@ -145,5 +252,136 @@ public class AppMethodBeat implements BeatLifecycle {
 
     private static class Holder {
         private static final AppMethodBeat INSTANCE = new AppMethodBeat();
+    }
+
+    private static IndexRecord sIndexRecordHead = null;
+
+    public IndexRecord maskIndex(String source) {
+        if (sIndexRecordHead == null) {
+            SwanLog.d(TAG, "sIndexRecordHead mask index: " + sIndex);
+            sIndexRecordHead = new IndexRecord(sIndex - 1);
+            sIndexRecordHead.source = source;
+            return sIndexRecordHead;
+        } else {
+            SwanLog.d(TAG, "IndexRecord mask index: " + sIndex);
+            IndexRecord indexRecord = new IndexRecord(sIndex - 1);
+            indexRecord.source = source;
+            IndexRecord record = sIndexRecordHead;
+            IndexRecord last = null;
+            while (record != null) {
+                if (indexRecord.index <= record.index) {
+                    if (last == null) {
+                        IndexRecord tmp = sIndexRecordHead;
+                        sIndexRecordHead = indexRecord;
+                        indexRecord.next = tmp;
+                    } else {
+                        IndexRecord tmp = last.next;
+                        last.next = indexRecord;
+                        indexRecord.next = tmp;
+                    }
+                    return indexRecord;
+                }
+                last = record;
+                record = record.next;
+            }
+            return indexRecord;
+        }
+    }
+
+    private static void checkPileup(int index) {
+        IndexRecord indexRecord = sIndexRecordHead;
+        while (indexRecord != null) {
+            if (indexRecord.index == index || (indexRecord.index == -1 && sLastIndex == BUFFER_SIZE - 1)) {
+                indexRecord.isValid = false;
+                indexRecord = indexRecord.next;
+                sIndexRecordHead = indexRecord;
+            } else {
+                break;
+            }
+        }
+    }
+
+    public static final class IndexRecord {
+        public int index;
+        private IndexRecord next;
+        public boolean isValid = true;
+        public String source;
+
+        public IndexRecord(int index) {
+            this.index = index;
+        }
+
+        public IndexRecord() {
+            this.isValid = false;
+        }
+
+        /**
+         * 从 sIndexRecordHead 链表中删除当前节点
+         */
+        public void release() {
+            isValid = false;
+            IndexRecord record = sIndexRecordHead;
+            IndexRecord last = null;
+            while (record != null) {
+                if (record == this) {
+                    if (last != null) {
+                        last.next = record.next;
+                    } else {
+                        // 说明是该节点是头节点
+                        sIndexRecordHead = record.next;
+                    }
+                    record.next = null;
+                    break;
+                }
+                last = record;
+                record = record.next;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "IndexRecord{" +
+                    "index=" + index +
+                    ", isValid=" + isValid +
+                    ", source='" + source + '\'' +
+                    '}';
+        }
+    }
+
+    public long[] copyData(IndexRecord startRecord) {
+        return copyData(startRecord, new IndexRecord(sIndex - 1));
+    }
+
+    public long[] copyData(IndexRecord startRecord, IndexRecord endRecord) {
+        long current = System.currentTimeMillis();
+        long[] data = new long[0];
+        try {
+            if (startRecord.isValid && endRecord.isValid) {
+                int len;
+                int start = Math.max(0, startRecord.index);
+                int end = Math.max(0, endRecord.index);
+
+                if (end > start) {
+                    len = end - start + 1;
+                    data = new long[len];
+                    System.arraycopy(sBuffer, start, data, 0, len);
+                } else if (end < start) {
+                    len = 1 + end + (sBuffer.length - start);
+                    data = new long[len];
+                    System.arraycopy(sBuffer, start, data, 0, sBuffer.length - start);
+                    System.arraycopy(sBuffer, 0, data, sBuffer.length - start, end + 1);
+                }
+                return data;
+            }
+
+            return data;
+        } catch (Throwable t) {
+            SwanLog.e(TAG, t.toString());
+            return data;
+        } finally {
+            SwanLog.i(TAG, "[copyData] [%s:%s] length:%s cost:%sms", Math.max(0, startRecord.index), endRecord.index, data.length, System.currentTimeMillis() - current);
+
+        }
+
     }
 }

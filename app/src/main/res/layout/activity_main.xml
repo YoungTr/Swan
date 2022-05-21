@@ -12,10 +12,21 @@
         android:layout_height="wrap_content"
         android:text="Resource Activity"
         android:textSize="26dp"
-        app:layout_constraintBottom_toBottomOf="@+id/parse_hprof"
+        app:layout_constraintBottom_toTopOf="@+id/trace_activity"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/trace_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Trace Activity"
+        android:textSize="26dp"
+        app:layout_constraintBottom_toTopOf="@+id/parse_hprof"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sample_text" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/parse_hprof"
@@ -26,6 +37,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/sample_text" />
+        app:layout_constraintTop_toBottomOf="@id/trace_activity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

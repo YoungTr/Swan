@@ -10,6 +10,7 @@ import com.bomber.swan.databinding.ActivityMainBinding
 import com.bomber.swan.resource.ResourceActivity
 import com.bomber.swan.resource.matrix.EventListener
 import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
+import com.bomber.swan.trace.TraceActivity
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
 import java.io.File
@@ -30,6 +31,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.sampleText.setOnClickListener {
             startActivity(Intent(this, ResourceActivity::class.java))
+        }
+        binding.traceActivity.setOnClickListener {
+            TraceActivity.start(this)
         }
         // Example of a call to a native method
 //        binding.sampleText.text = stringFromJNI()
@@ -61,7 +65,6 @@ class MainActivity : AppCompatActivity() {
                                 SwanLog.d(TAG, "step: ${step.step}")
                             }
                         )
-
 
 
                     }

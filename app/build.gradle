@@ -60,4 +60,5 @@ dependencies {
     implementation project(':swan-resource-canary:swan-resource-canary-android')
     implementation project(':swan-third-libs:shark-libs:shark')
     implementation project(':swan-third-libs:shark-libs:shark-android')
+    implementation project(':swan-trace-canary')
 }
