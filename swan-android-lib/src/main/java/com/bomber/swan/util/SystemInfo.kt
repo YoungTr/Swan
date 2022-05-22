@@ -47,8 +47,7 @@ object SystemInfo {
     var javaHeap = JavaHeap()
     var lastJavaHeap = JavaHeap()
 
-    val procStat
-        get() = readProcStat()
+    val procStat = ProcStat()
 
     //selinux权限问题，先注释掉
     //var dmaZoneInfo: ZoneInfo = ZoneInfo()
@@ -115,6 +114,14 @@ object SystemInfo {
 
         memInfo.rate = 1.0f * memInfo.availableInKb / memInfo.totalInKb
 
+        val content = File("/proc/self/stat").bufferedReader().use { it.readText() }.trim()
+        content.split(" ").apply {
+            if (size >= 19) {
+                procStat.priority = this[17].trim().toInt()
+                procStat.nice = this[18].trim().toInt()
+            }
+        }
+
         SwanLog.i(TAG, "----OOM Monitor Memory----")
         SwanLog.i(TAG, "[java] max:${javaHeap.max} used ratio:${(javaHeap.rate * 100).toInt()}%")
         SwanLog.i(
@@ -129,20 +136,6 @@ object SystemInfo {
             TAG,
             "avaliable ratio:${(memInfo.rate * 100).toInt()}% CmaTotal:${memInfo.cmaTotal}kB ION_heap:${memInfo.IONHeap}kB"
         )
-    }
-
-    fun readProcStat(): ProcStat {
-        val stat = ProcStat()
-        val content = File("/proc/self/stat").bufferedReader().use { it.readText() }.trim()
-        content.split(" ").apply {
-            if (size >= 19) {
-                stat.priority = this[17].trim().toInt()
-                stat.nice = this[18].trim().toInt()
-            }
-        }
-
-        SwanLog.d(TAG, "proc stat: $stat")
-        return stat
     }
 
     data class ProcStatus(var thread: Int = 0, var vssInKb: Int = 0, var rssInKb: Int = 0)

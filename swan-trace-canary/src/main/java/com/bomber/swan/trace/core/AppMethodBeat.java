@@ -45,7 +45,7 @@ public class AppMethodBeat implements BeatLifecycle {
      * mark time
      */
     private volatile static long sCurrentDiffTime = SystemClock.uptimeMillis();
-    private volatile static long sDiffTime = sCurrentDiffTime;
+    private final static long sDiffTime = sCurrentDiffTime;
     private static final long sMainThreadId = Looper.getMainLooper().getThread().getId();
     private static final HandlerThread sTimeUpdateThread = newHandlerThread("swan_time_update_thread", Thread.MIN_PRIORITY + 2);
     private static final Handler sHandler = new Handler(sTimeUpdateThread.getLooper());
@@ -249,6 +249,10 @@ public class AppMethodBeat implements BeatLifecycle {
         return Holder.INSTANCE;
     }
 
+    public static long getDiffTime() {
+        return sDiffTime;
+    }
+
 
     private static class Holder {
         private static final AppMethodBeat INSTANCE = new AppMethodBeat();
@@ -327,7 +331,7 @@ public class AppMethodBeat implements BeatLifecycle {
                     if (last != null) {
                         last.next = record.next;
                     } else {
-                        // 说明是该节点是头节点
+                        // 说明该节点是头节点
                         sIndexRecordHead = record.next;
                     }
                     record.next = null;
