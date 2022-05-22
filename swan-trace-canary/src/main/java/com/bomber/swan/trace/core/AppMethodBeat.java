@@ -15,7 +15,6 @@ import android.os.SystemClock;
 import androidx.annotation.WorkerThread;
 
 import com.bomber.swan.util.SwanLog;
-import com.bomber.swan.util.SystemInfo;
 
 public class AppMethodBeat implements BeatLifecycle {
 
@@ -100,7 +99,6 @@ public class AppMethodBeat implements BeatLifecycle {
 
     @Override
     public void onStart() {
-        SystemInfo.INSTANCE.getProcStat();
         synchronized (statusLock) {
             if (status < STATUS_STARTED && status >= STATUS_EXPIRED_START) {
                 sHandler.removeCallbacks(checkStartExpiredRunnable);
@@ -262,12 +260,12 @@ public class AppMethodBeat implements BeatLifecycle {
 
     public IndexRecord maskIndex(String source) {
         if (sIndexRecordHead == null) {
-            SwanLog.d(TAG, "sIndexRecordHead mask index: " + sIndex);
+//            SwanLog.d(TAG, "sIndexRecordHead mask index: " + sIndex);
             sIndexRecordHead = new IndexRecord(sIndex - 1);
             sIndexRecordHead.source = source;
             return sIndexRecordHead;
         } else {
-            SwanLog.d(TAG, "IndexRecord mask index: " + sIndex);
+//            SwanLog.d(TAG, "IndexRecord mask index: " + sIndex);
             IndexRecord indexRecord = new IndexRecord(sIndex - 1);
             indexRecord.source = source;
             IndexRecord record = sIndexRecordHead;

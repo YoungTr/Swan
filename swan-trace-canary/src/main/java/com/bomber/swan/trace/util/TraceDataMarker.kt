@@ -104,15 +104,15 @@ object TraceDataMarker {
         treeToStack(root, result)
     }
 
-    private fun isIn(trueId: Long): Boolean {
+    fun isIn(trueId: Long): Boolean {
         return trueId.shr(63).and(0x1) == 1L
     }
 
-    private fun getMethodId(trueId: Long): Int {
+    fun getMethodId(trueId: Long): Int {
         return trueId.shr(43).and(0xFFFFFL).toInt()
     }
 
-    private fun getTime(trueId: Long): Long {
+    fun getTime(trueId: Long): Long {
         return trueId.and(0x7FFFFFFFFFFL)
     }
 
