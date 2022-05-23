@@ -13,7 +13,7 @@ fun getStack(
     val lenLimit = if (limit < 0) Int.MAX_VALUE else limit
     val loop = min(trace.size - start, lenLimit)
     val sb = StringBuilder(" \n")
-    for (index in start..loop) {
+    for (index in start until loop) {
         sb.append(preFix)
             .append("at ")
             .append(trace[index].className)
