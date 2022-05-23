@@ -19,6 +19,7 @@
 package com.bomber.swan.util
 
 import android.os.Build
+import android.os.Debug
 import android.text.TextUtils
 import java.io.BufferedReader
 import java.io.File
@@ -113,6 +114,7 @@ object SystemInfo {
         }
 
         memInfo.rate = 1.0f * memInfo.availableInKb / memInfo.totalInKb
+        memInfo.nativeHeap = Debug.getNativeHeapAllocatedSize()
 
         val content = File("/proc/self/stat").bufferedReader().use { it.readText() }.trim()
         content.split(" ").apply {
@@ -142,7 +144,7 @@ object SystemInfo {
 
     data class MemInfo(
         var totalInKb: Int = 0, var freeInKb: Int = 0, var availableInKb: Int = 0,
-        var IONHeap: Int = 0, var cmaTotal: Int = 0, var rate: Float = 0f
+        var IONHeap: Int = 0, var cmaTotal: Int = 0, var rate: Float = 0f, var nativeHeap: Long = 0
     )
 
     data class JavaHeap(
