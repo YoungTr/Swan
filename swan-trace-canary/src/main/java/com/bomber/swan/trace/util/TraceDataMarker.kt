@@ -1,6 +1,8 @@
 package com.bomber.swan.trace.util
 
 import com.bomber.swan.trace.constants.DEFAULT_ANR
+import com.bomber.swan.trace.constants.FILTER_STACK_KEY_ALL_PERCENT
+import com.bomber.swan.trace.constants.TARGET_EVIL_METHOD_STACK
 import com.bomber.swan.trace.core.AppMethodBeat
 import com.bomber.swan.trace.items.MethodItem
 import com.bomber.swan.util.SwanLog
@@ -161,7 +163,7 @@ object TraceDataMarker {
      * 将 tree 结构转换为真正的方法调用栈
      */
     private fun treeToStack(root: TreeNode, list: LinkedList<MethodItem>) {
-        for (index in 0..root.child.size) {
+        for (index in 0 until root.child.size) {
             val node = root.child[index] ?: continue
             if (node.item != null) {
                 list.add(node.item)
@@ -193,20 +195,100 @@ object TraceDataMarker {
         }
     }
 
-    fun trimStack(stack: MutableList<MethodItem>, targetCount: Int, filter: IStructuredDataFilter) {
+    /**
+     * 裁剪堆栈信息
+     * 最大的堆栈 count，默认30个
+     * 将耗时太短的方法裁剪掉，[filter.isFilter(item.durTime.toLong(), filterCount)]
+     */
+    fun trimStack(
+        stack: LinkedList<MethodItem>,
+        targetCount: Int = TARGET_EVIL_METHOD_STACK,
+        filter: IStructuredDataFilter
+    ) {
         if (targetCount < 0) {
             stack.clear()
             return
         }
-        // TODO()
+        var filterCount = 1
+        var curStackSize = stack.size
+        while (curStackSize > targetCount) {
+            val iterator = stack.listIterator(stack.size)
+            while (iterator.hasPrevious()) {
+                val item = iterator.previous()
+                if (filter.isFilter(item.durTime.toLong(), filterCount)) {
+                    iterator.remove()
+                    curStackSize--
+                    if (curStackSize <= targetCount) {
+                        return
+                    }
+                }
+            }
+            curStackSize = stack.size
+            filterCount++
+            // 最多 filter 的次数，默认 60 次
+            if (filter.filterMaxCount() < filterCount) {
+                break
+            }
+        }
+        val size = stack.size
+        if (size > targetCount) {
+            filter.fallback(stack, size)
+        }
     }
 
+    fun stackToString(
+        stack: LinkedList<MethodItem>,
+        reportBuilder: StringBuilder,
+        logcatBuilder: StringBuilder
+    ): Int {
+        logcatBuilder.append("|*\t\tTraceStack:").append("\n")
+        logcatBuilder.append("|*\t\t[id count cost]").append("\n")
+        val iterator = stack.iterator()
+        var stackCost = 0
+        while (iterator.hasNext()) {
+            val item = iterator.next()
+            reportBuilder.append(item.toString()).append("\n")
+            logcatBuilder.append("|*\t\t").append(item.print()).append("\n")
+
+            if (stackCost < item.durTime) {
+                stackCost = item.durTime
+            }
+        }
+        return stackCost
+    }
+
+    fun geTreeKey(stack: LinkedList<MethodItem>, stackCost: Int): String {
+        val ss = StringBuilder()
+        val allLimit = (stackCost * FILTER_STACK_KEY_ALL_PERCENT).toLong()
+
+        val sortList = LinkedList<MethodItem>()
+        for (item in stack) {
+            if (item.durTime >= allLimit) {
+                sortList.add(item)
+            }
+        }
+
+        sortList.sortWith { o1, o2 -> (o2.depth + 1) * o2.durTime.compareTo((o1.depth + 1) * o1.durTime) }
+        if (sortList.isEmpty() && stack.isNotEmpty()) {
+            val root = stack[0]
+            sortList.add(root)
+        } else if (sortList.size > 1 && sortList.peekFirst()!!.methodId == AppMethodBeat.METHOD_ID_DISPATCH) {
+            sortList.removeFirst()
+        }
+
+        for (item in sortList) {
+            ss.append("${item.methodId} |")
+            break
+        }
+        return ss.toString()
+
+    }
 }
 
 interface IStructuredDataFilter {
     fun isFilter(during: Long, filterCount: Int): Boolean
     fun filterMaxCount(): Int
-    fun fallback(stack: List<MethodItem>, size: Int)
+    fun fallback(stack: LinkedList<MethodItem>, size: Int)
 }
 
 data class TreeNode(val item: MethodItem?, var father: TreeNode?) {

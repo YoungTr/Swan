@@ -6,8 +6,12 @@ import android.os.Bundle
 import android.os.SystemClock
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityTraceBinding
+import com.bomber.swan.trace.constants.FILTER_STACK_MAX_COUNT
+import com.bomber.swan.trace.constants.TARGET_EVIL_METHOD_STACK
+import com.bomber.swan.trace.constants.TIME_UPDATE_CYCLE_MS
 import com.bomber.swan.trace.core.AppMethodBeat
 import com.bomber.swan.trace.items.MethodItem
+import com.bomber.swan.trace.util.IStructuredDataFilter
 import com.bomber.swan.trace.util.TraceDataMarker
 import com.bomber.swan.util.SwanLog
 import java.lang.Thread.sleep
@@ -35,6 +39,32 @@ class TraceActivity : AppCompatActivity() {
 
         val stack = LinkedList<MethodItem>()
         TraceDataMarker.structuredDataToStack(data, stack, true, SystemClock.uptimeMillis())
+        TraceDataMarker.trimStack(
+            stack,
+            TARGET_EVIL_METHOD_STACK,
+            object : IStructuredDataFilter {
+                override fun isFilter(during: Long, filterCount: Int): Boolean {
+                    return during < filterCount * TIME_UPDATE_CYCLE_MS
+                }
+
+                override fun filterMaxCount(): Int {
+                    return FILTER_STACK_MAX_COUNT
+                }
+
+                override fun fallback(stack: LinkedList<MethodItem>, size: Int) {
+                    SwanLog.w(
+                        TAG,
+                        "[fallback] size: %s, target size: $TARGET_EVIL_METHOD_STACK, stack: $stack"
+                    )
+                    val iterator =
+                        stack.listIterator(size.coerceAtMost(TARGET_EVIL_METHOD_STACK))
+                    while (iterator.hasNext()) {
+                        iterator.next()
+                        iterator.remove()
+                    }
+                }
+
+            })
 
 
         /**
