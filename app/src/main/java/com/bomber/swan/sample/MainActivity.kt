@@ -1,4 +1,4 @@
-package com.bomber.swan
+package com.bomber.swan.sample
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -6,11 +6,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
-import com.bomber.swan.databinding.ActivityMainBinding
-import com.bomber.swan.resource.ResourceActivity
 import com.bomber.swan.resource.matrix.EventListener
 import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
-import com.bomber.swan.trace.TraceActivity
+import com.bomber.swan.sample.databinding.ActivityMainBinding
+import com.bomber.swan.sample.resource.ResourceActivity
+import com.bomber.swan.sample.trace.TraceActivity
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
 import java.io.File

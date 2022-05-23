@@ -1,4 +1,4 @@
-package com.bomber.swan.trace
+package com.bomber.swan.sample.trace
 
 import android.content.Context
 import android.content.Intent

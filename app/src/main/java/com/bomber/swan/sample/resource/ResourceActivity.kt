@@ -1,4 +1,4 @@
-package com.bomber.swan.resource
+package com.bomber.swan.sample.resource
 
 import android.app.Activity
 import android.graphics.Bitmap

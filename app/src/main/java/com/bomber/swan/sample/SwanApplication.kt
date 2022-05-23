@@ -1,4 +1,4 @@
-package com.bomber.swan
+package com.bomber.swan.sample
 
 import android.app.Application
 import com.bomber.swan.plugin.DefaultPluginListener
