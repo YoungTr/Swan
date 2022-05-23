@@ -3,17 +3,20 @@ package com.bomber.swan.trace
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.databinding.ActivityTraceBinding
 import com.bomber.swan.trace.core.AppMethodBeat
+import com.bomber.swan.trace.items.MethodItem
 import com.bomber.swan.trace.util.TraceDataMarker
 import com.bomber.swan.util.SwanLog
 import java.lang.Thread.sleep
+import java.util.*
 
 class TraceActivity : AppCompatActivity() {
     private lateinit var binding: ActivityTraceBinding
     override fun onCreate(savedInstanceState: Bundle?) {
-        AppMethodBeat.i(100)
+        AppMethodBeat.i(AppMethodBeat.METHOD_ID_DISPATCH)
         AppMethodBeat.getInstance().onStart()
 
         super.onCreate(savedInstanceState)
@@ -29,8 +32,30 @@ class TraceActivity : AppCompatActivity() {
             val time = TraceDataMarker.getTime(id)
             SwanLog.d(TAG, "method is ${if (isIn) "in" else "out"}, id: $methodId, time: $time")
         }
-        AppMethodBeat.o(100)
 
+        val stack = LinkedList<MethodItem>()
+        TraceDataMarker.structuredDataToStack(data, stack, true, SystemClock.uptimeMillis())
+
+
+        /**
+         * rest for recursion
+         *
+        val record2 = AppMethodBeat.getInstance().maskIndex("trace_recursion")
+        val recursion = recursion(10)
+        SwanLog.d(TAG, "recursion: $recursion")
+        val data2 = AppMethodBeat.getInstance().copyData(record2)
+        SwanLog.d(TAG, "data2: ${data2.contentToString()}")
+
+        SwanLog.d(TAG, "------Recursion-------")
+        for (id in data2) {
+        val isIn = TraceDataMarker.isIn(id)
+        val methodId = TraceDataMarker.getMethodId(id)
+        val time = TraceDataMarker.getTime(id)
+        SwanLog.d(TAG, "method is ${if (isIn) "in" else "out"}, id: $methodId, time: $time")
+        }
+         **/
+
+        AppMethodBeat.o(AppMethodBeat.METHOD_ID_DISPATCH)
 
     }
 
@@ -74,8 +99,15 @@ class TraceActivity : AppCompatActivity() {
         AppMethodBeat.o(5)
     }
 
+    fun recursion(x: Int): Int {
+        AppMethodBeat.i(6)
+        val result = if (x <= 1) 1 else recursion(x - 1) + x
+        AppMethodBeat.o(6)
+        return result
+    }
+
     companion object {
-        private const val TAG = "TraceActivity"
+        private const val TAG = "Swan.TraceActivity"
 
         @JvmStatic
         fun start(context: Context) {

@@ -86,11 +86,11 @@ class LooperAnrTracer : Tracer() {
                         }
 
                         override fun filterMaxCount(): Int {
-                            TODO("Not yet implemented")
+                            return 3
                         }
 
                         override fun fallback(stack: List<MethodItem>, size: Int) {
-                            TODO("Not yet implemented")
+
                         }
 
                     })

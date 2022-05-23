@@ -14,6 +14,9 @@ object TraceDataMarker {
 
     private const val TAG = "Swan.TraceData"
 
+    /**
+     * [100,0,1,1,2,2,3,3,4,4,5,5,0]
+     */
     fun structuredDataToStack(
         buffer: LongArray,
         result: LinkedList<MethodItem>,
@@ -97,6 +100,10 @@ object TraceDataMarker {
             addMethodItem(result, methodItem)
         }
 
+        for (item in result) {
+            SwanLog.d(TAG, "$item")
+        }
+
         val root = TreeNode(null, null)
         val count = stackToTree(result, root)
         SwanLog.i(TAG, "stackTree count: $count")
@@ -116,7 +123,10 @@ object TraceDataMarker {
         return trueId.and(0x7FFFFFFFFFFL)
     }
 
-    fun stackToTree(resultStack: LinkedList<MethodItem>, root: TreeNode): Int {
+    /**
+     * 将方法调用的 stack 结构调整为 tree 结构
+     */
+    private fun stackToTree(resultStack: LinkedList<MethodItem>, root: TreeNode): Int {
         var lastNode: TreeNode? = null
         val iterator = resultStack.listIterator(0)
         var count = 0
@@ -147,6 +157,9 @@ object TraceDataMarker {
         return count
     }
 
+    /**
+     * 将 tree 结构转换为真正的方法调用栈
+     */
     private fun treeToStack(root: TreeNode, list: LinkedList<MethodItem>) {
         for (index in 0..root.child.size) {
             val node = root.child[index] ?: continue
@@ -159,6 +172,11 @@ object TraceDataMarker {
         }
     }
 
+    /**
+     * 将 method item 压栈
+     * 如果栈顶的 method id 与 [item] 的 method id 相同且 depth 也相同则将它们合并
+     * 否则直接压入栈顶
+     */
     private fun addMethodItem(resultStack: LinkedList<MethodItem>, item: MethodItem): Int {
         var last: MethodItem? = null
         if (resultStack.isNotEmpty()) {
