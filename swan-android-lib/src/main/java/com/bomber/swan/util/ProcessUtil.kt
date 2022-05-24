@@ -18,10 +18,10 @@ import androidx.annotation.RequiresApi
  * @data 2022/4/9
  */
 
-private lateinit var _processNmae: String
+private lateinit var _processName: String
 
 fun Context.isMainProcess(): Boolean {
-    return getProcessName(this).equals(_processNmae)
+    return getProcessName(this).equals(this.packageName)
 }
 
 fun Context.versionName(): String {
@@ -34,7 +34,7 @@ fun Context.versionName(): String {
 
 @SuppressLint("PrivateApi", "ObsoleteSdkInt", "DiscouragedPrivateApi")
 fun getProcessName(context: Context): String? {
-    if (::_processNmae.isInitialized) return _processNmae
+    if (::_processName.isInitialized) return _processName
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) return Api28Impl.processName
     try {
 
