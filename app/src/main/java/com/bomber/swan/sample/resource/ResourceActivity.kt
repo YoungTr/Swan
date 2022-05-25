@@ -4,7 +4,7 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.bomber.swan.databinding.ActivityResourceBinding
+import com.bomber.swan.sample.databinding.ActivityResourceBinding
 
 class ResourceActivity : AppCompatActivity() {
 

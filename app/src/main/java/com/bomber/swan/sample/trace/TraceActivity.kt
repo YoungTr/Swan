@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.appcompat.app.AppCompatActivity
-import com.bomber.swan.databinding.ActivityTraceBinding
+import com.bomber.swan.sample.databinding.ActivityTraceBinding
 import com.bomber.swan.trace.constants.FILTER_STACK_MAX_COUNT
 import com.bomber.swan.trace.constants.TARGET_EVIL_METHOD_STACK
 import com.bomber.swan.trace.constants.TIME_UPDATE_CYCLE_MS

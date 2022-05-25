@@ -59,6 +59,21 @@ public class AppMethodBeat implements BeatLifecycle {
     private static final Runnable updateDiffTimeRunnable = AppMethodBeat::updateDiffTime;
     private static Runnable checkStartExpiredRunnable = null;
 
+    private static LooperMonitor.LooperDispatchListener looperDispatchListener = new LooperMonitor.LooperDispatchListener() {
+        @Override
+        public void dispatchStart() {
+            super.dispatchStart();
+            AppMethodBeat.dispatchBegin();
+        }
+
+        @Override
+        public void dispatchEnd() {
+            super.dispatchEnd();
+            AppMethodBeat.dispatchEnd();
+        }
+
+    };
+
 
     static {
         // AppMethodBeat 类初始化 10s 还没 start，即释放 sBuffer 的资源，退出后台线程等
@@ -70,6 +85,7 @@ public class AppMethodBeat implements BeatLifecycle {
             if (status == STATUS_DEFAULT || status <= STATUS_READY) {
                 SwanLog.d(TAG, "[realRelease] timestamp: %s", System.currentTimeMillis());
                 sHandler.removeCallbacksAndMessages(null);
+                LooperMonitor.unregister(looperDispatchListener);
                 sTimeUpdateThread.quit();
                 sBuffer = null;
                 status = STATUS_OUT_RELEASE;
@@ -153,6 +169,7 @@ public class AppMethodBeat implements BeatLifecycle {
                 }
             }
         }, DEFAULT_RELEASE_BUFFER_DELAY);
+        LooperMonitor.register(looperDispatchListener);
     }
 
     private static void dispatchBegin() {
