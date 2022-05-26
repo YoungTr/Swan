@@ -1,14 +1,13 @@
 package com.bomber.swan.trace.core
 
 import android.annotation.SuppressLint
-import android.os.Build
-import android.os.Looper
-import android.os.MessageQueue
-import android.os.SystemClock
+import android.os.*
 import android.util.Printer
 import androidx.annotation.CallSuper
 import com.bomber.swan.util.SwanLog
+import com.bomber.swan.util.newHandlerThread
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 @SuppressLint("DiscouragedPrivateApi")
 class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
@@ -16,14 +15,55 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
     companion object {
         private const val TAG = "Swan.LooperMonitor"
 
+        private val historyMsgHandlerThread = newHandlerThread("historyMsgHandlerThread")
+        private val historyMsgHandler = Handler(historyMsgHandlerThread.looper)
         private val sLooperMonitors = ConcurrentHashMap<Looper, LooperMonitor>()
         private val sMainMonitor = of(Looper.getMainLooper())
 
+
+        private val anrHistoryMQ = ConcurrentLinkedQueue<M>()
+        private val recentMsgQ = ConcurrentLinkedQueue<M>()
+
         private const val CHECK_TIME = 60 * 1000L
+        private const val HISTORY_QUEUE_MAX_SIZE = 200
+        private const val RECENT_QUEUE_MAX_SIZE = 5000
+
+
+        private var messageStartTime = 0L
+
+        private var latestMsgLog = ""
+        private var recentMCount = 0L
+        private var recentMDuration = 0L
 
         fun of(looper: Looper): LooperMonitor {
             return sLooperMonitors[looper]
                 ?: LooperMonitor(looper).apply { sLooperMonitors[looper] = this }
+        }
+
+        private fun recordMsg(log: String, duration: Long, denseMsgTracer: Boolean) {
+            historyMsgHandler.post {
+                enqueueHistoryMQ(M(log, duration))
+            }
+            if (denseMsgTracer) {
+                historyMsgHandler.post {
+                    enqueueRecentMQ(M(log, duration))
+                }
+            }
+        }
+
+        private fun enqueueRecentMQ(m: M) {
+            if (recentMsgQ.size == RECENT_QUEUE_MAX_SIZE) {
+                recentMsgQ.poll()
+            }
+            recentMsgQ.offer(m)
+            recentMDuration += m.d
+        }
+
+        private fun enqueueHistoryMQ(m: M) {
+            if (anrHistoryMQ.size == HISTORY_QUEUE_MAX_SIZE) {
+                anrHistoryMQ.poll()
+            }
+            anrHistoryMQ.offer(m)
         }
 
         @JvmStatic
@@ -168,6 +208,9 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
         }
     }
 
+    /**
+     * 每 60s 检测一次 Printer
+     */
     override fun queueIdle(): Boolean {
         if (SystemClock.uptimeMillis() - lastCheckPrinterTime >= CHECK_TIME) {
             resetPrinter()
@@ -177,7 +220,36 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
     }
 
     private fun dispatch(isBegin: Boolean, log: String) {
-//        SwanLog.d(TAG, "Looper isBegin: $isBegin, log: $log")
+        synchronized(dispatchListeners) {
+            dispatchListeners.forEach {
+                if (it.isValid()) {
+                    if (isBegin) {
+                        if (!it.isHasDispatchStart) {
+                            if (it.historyMsgRecord) {
+                                messageStartTime = System.currentTimeMillis()
+                                latestMsgLog = log
+                                recentMCount++
+                            }
+                            it.onDispatchStart(log)
+                        }
+                    } else {
+                        if (it.isHasDispatchStart) {
+                            if (it.historyMsgRecord) {
+                                recordMsg(
+                                    log,
+                                    System.currentTimeMillis() - messageStartTime,
+                                    it.denseMsgTracer
+                                )
+                                it.onDispatchEnd(log)
+                            }
+                        }
+                    }
+                } else if (!isBegin && it.isHasDispatchStart) {
+                    it.dispatchEnd()
+                }
+            }
+        }
+
     }
 
 
@@ -205,3 +277,5 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
     }
 
 }
+
+internal data class M(val l: String, val d: Long)

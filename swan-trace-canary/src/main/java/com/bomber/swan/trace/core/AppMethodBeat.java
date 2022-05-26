@@ -59,7 +59,7 @@ public class AppMethodBeat implements BeatLifecycle {
     private static final Runnable updateDiffTimeRunnable = AppMethodBeat::updateDiffTime;
     private static Runnable checkStartExpiredRunnable = null;
 
-    private static LooperMonitor.LooperDispatchListener looperDispatchListener = new LooperMonitor.LooperDispatchListener() {
+    private static final LooperMonitor.LooperDispatchListener looperDispatchListener = new LooperMonitor.LooperDispatchListener() {
         @Override
         public void dispatchStart() {
             super.dispatchStart();
