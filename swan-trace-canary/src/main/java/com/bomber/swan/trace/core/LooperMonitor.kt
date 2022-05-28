@@ -189,7 +189,7 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
     ) {
         var isHasDispatchStart = false
 
-        fun isValid() = false
+        open fun isValid() = false
 
         open fun dispatchStart() {}
 

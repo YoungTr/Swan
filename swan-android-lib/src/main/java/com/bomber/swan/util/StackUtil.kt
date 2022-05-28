@@ -32,3 +32,18 @@ fun getWholeStack(trace: Array<StackTraceElement>): String {
     }
     return sb.toString()
 }
+
+fun printException(e: Exception): String {
+    val stackTrace = e.stackTrace ?: return ""
+
+    val t = java.lang.StringBuilder(e.toString())
+    for (i in 2 until stackTrace.size) {
+        t.append('[')
+        t.append(stackTrace[i].className)
+        t.append(':')
+        t.append(stackTrace[i].methodName)
+        t.append("(" + stackTrace[i].lineNumber + ")]")
+        t.append("\n")
+    }
+    return t.toString()
+}

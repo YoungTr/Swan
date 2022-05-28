@@ -13,7 +13,7 @@ abstract class LooperObserver(private var isDispatchBegin: Boolean = false) {
         isDispatchBegin = true
     }
 
-    fun doFrame(
+    open fun doFrame(
         focusedActivity: String?,
         startNs: Long,
         endNs: Long,
@@ -43,7 +43,7 @@ abstract class LooperObserver(private var isDispatchBegin: Boolean = false) {
 
     fun isForeground(): Boolean {
         // TODO:
-        return false
+        return true
     }
 
 }
