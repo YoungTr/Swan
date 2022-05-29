@@ -8,10 +8,10 @@ import android.os.Handler
 import android.os.SystemClock
 import com.bomber.swan.resource.friendly.noOpDelegate
 import com.bomber.swan.resource.matrix.EventListener.Event.HeapDump
-import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 import com.bomber.swan.resource.matrix.analyzer.AnalysisFailure
 import com.bomber.swan.resource.matrix.analyzer.AnalysisSuccess
 import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
+import com.bomber.swan.resource.matrix.config.ResourceConfig
 import com.bomber.swan.resource.matrix.dumper.HeapDumpTrigger
 import com.bomber.swan.resource.matrix.watcher.OnObjectRetainedListener
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
@@ -30,6 +30,8 @@ internal object InternalSwanResource : OnObjectRetainedListener {
 
     @Suppress("ObjectPropertyName")
     private lateinit var _application: Application
+
+    lateinit var config: ResourceConfig
 
     val application: Application
         get() {
@@ -61,7 +63,7 @@ internal object InternalSwanResource : OnObjectRetainedListener {
 
         val gcTrigger = GcTrigger.Default
 
-        val configProvider = { ResourceMatrixPlugin.config }
+        val configProvider = { this.config }
 
         val handlerThread = newHandlerThread(LEAK_CANARY_THREAD_NAME)
         val backgroundHandler = Handler(handlerThread.looper)
@@ -85,7 +87,7 @@ internal object InternalSwanResource : OnObjectRetainedListener {
     fun createLeakDirectoryProvider(context: Context): LeakDirectoryProvider {
         val appContext = context.applicationContext
         return LeakDirectoryProvider(appContext, {
-            ResourceMatrixPlugin.config.maxStoredHeapDumps
+            this.config.maxStoredHeapDumps
         })
     }
 
@@ -116,7 +118,7 @@ internal object InternalSwanResource : OnObjectRetainedListener {
                     SwanLog.d(TAG, "run analysis fail, need retry?")
                 }
                 is AnalysisSuccess -> {
-                    val resultCallback = ResourceMatrixPlugin.config.resultCallback
+                    val resultCallback = this.config.resultCallback
                     resultCallback.report(
                         heapDump.file.absolutePath,
                         heapDump.jsonFile.absolutePath,

@@ -18,6 +18,7 @@ import shark.HprofHeapGraph.Companion.openHeapGraph
 import shark.HprofRecordTag
 import shark.OnAnalysisProgressListener
 import java.io.File
+import java.util.*
 
 /**
  * @author youngtr
@@ -98,13 +99,18 @@ object AndroidDebugHeapAnalyzer {
 
         val graph =
             heapDumpFile.openHeapGraph(
-                indexedGcRootTypes = setOf(
+                indexedGcRootTypes = EnumSet.of(
                     HprofRecordTag.ROOT_JNI_GLOBAL,
+                    HprofRecordTag.ROOT_JAVA_FRAME,
                     HprofRecordTag.ROOT_JNI_LOCAL,
+                    HprofRecordTag.ROOT_MONITOR_USED,
                     HprofRecordTag.ROOT_NATIVE_STACK,
                     HprofRecordTag.ROOT_STICKY_CLASS,
                     HprofRecordTag.ROOT_THREAD_BLOCK,
+                    // ThreadObject points to threads, which we need to find the thread that a JavaLocalPattern
+                    // belongs to
                     HprofRecordTag.ROOT_THREAD_OBJECT,
+                    HprofRecordTag.ROOT_JNI_MONITOR
                 )
             )
 

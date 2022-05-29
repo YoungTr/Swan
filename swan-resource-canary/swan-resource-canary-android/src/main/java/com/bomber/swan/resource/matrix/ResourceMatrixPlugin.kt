@@ -7,6 +7,7 @@ import com.bomber.swan.report.Issue
 import com.bomber.swan.report.Issue.Companion.ISSUE_LEAK_FOUND
 import com.bomber.swan.resource.matrix.config.IResultCallback
 import com.bomber.swan.resource.matrix.config.ResourceConfig
+import com.bomber.swan.resource.matrix.internal.InternalSwanResource
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
 
 /**
@@ -20,7 +21,9 @@ class ResourceMatrixPlugin : Plugin() {
 
     override fun init(application: Application, pluginListener: PluginListener) {
         super.init(application, pluginListener)
+        InternalSwanResource.config = config
         AppWatcher.init(application)
+
     }
 
     override fun start() {
