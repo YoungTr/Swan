@@ -189,4 +189,13 @@ object SystemInfo {
             arrayOf(Build.CPU_ABI)
         }
     }
+
+    fun calculateCpuUsage(threadMs: Long, ms: Long): String? {
+        if (threadMs <= 0) {
+            return if (ms > 1000) "0%" else "100%"
+        }
+        return if (threadMs >= ms) {
+            "100%"
+        } else String.format("%.2f", 1f * threadMs / ms * 100) + "%"
+    }
 }

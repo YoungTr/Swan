@@ -1,8 +1,6 @@
 package com.bomber.swan.sample
 
 import android.app.Application
-import com.bomber.swan.plugin.DefaultPluginListener
-import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 
 /**
  * @author youngtr
@@ -12,8 +10,6 @@ class SwanApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        val plugin = ResourceMatrixPlugin
-        plugin.init(this, DefaultPluginListener)
-        plugin.start()
+        SwanInitializer.init(this)
     }
 }

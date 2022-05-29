@@ -1,5 +1,5 @@
 /*
- * Tencent is pleased to support the open source community by making wechat-matrix available.
+ * Tencent is pleased to support the open source community by making wechat-swan available.
  * Copyright (C) 2018 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the BSD 3-Clause License (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import java.util.Set;
  */
 
 public class TraceConfig implements IDefaultConfig {
-    private static final String TAG = "Matrix.TraceConfig";
+    private static final String TAG = "swan.TraceConfig";
     public static final int STACK_STYLE_SIMPLE = 0;
     public static final int STACK_STYLE_WHOLE = 1;
     public IDynamicConfig dynamicConfig;
@@ -183,7 +183,7 @@ public class TraceConfig implements IDefaultConfig {
                 splashActivitiesSet.addAll(Arrays.asList(splashActivities.split(";")));
             } else {
 
-                String dySplashActivities = dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_trace_care_scene_set.name(), splashActivities);
+                String dySplashActivities = dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_trace_care_scene_set.name(), splashActivities);
                 if (null != dySplashActivities) {
                     splashActivities = dySplashActivities;
                 }
@@ -207,51 +207,51 @@ public class TraceConfig implements IDefaultConfig {
     public int getEvilThresholdMs() {
         return null == dynamicConfig
                 ? DEFAULT_EVIL_METHOD_THRESHOLD_MS
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_trace_evil_method_threshold.name(), DEFAULT_EVIL_METHOD_THRESHOLD_MS);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_trace_evil_method_threshold.name(), DEFAULT_EVIL_METHOD_THRESHOLD_MS);
     }
 
     public int getTimeSliceMs() {
         return null == dynamicConfig
                 ? DEFAULT_FPS_TIME_SLICE_ALIVE_MS
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_trace_fps_time_slice.name(), DEFAULT_FPS_TIME_SLICE_ALIVE_MS);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_trace_fps_time_slice.name(), DEFAULT_FPS_TIME_SLICE_ALIVE_MS);
     }
 
 
     public int getColdStartupThresholdMs() {
         return null == dynamicConfig
                 ? DEFAULT_STARTUP_THRESHOLD_MS_COLD
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_trace_app_start_up_threshold.name(), DEFAULT_STARTUP_THRESHOLD_MS_COLD);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_trace_app_start_up_threshold.name(), DEFAULT_STARTUP_THRESHOLD_MS_COLD);
     }
 
     public int getWarmStartupThresholdMs() {
         return null == dynamicConfig
                 ? DEFAULT_STARTUP_THRESHOLD_MS_WARM
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_trace_warm_app_start_up_threshold.name(), DEFAULT_STARTUP_THRESHOLD_MS_WARM);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_trace_warm_app_start_up_threshold.name(), DEFAULT_STARTUP_THRESHOLD_MS_WARM);
     }
 
 
     public int getFrozenThreshold() {
         return null == dynamicConfig
                 ? DEFAULT_DROPPED_FROZEN
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_fps_dropped_frozen.name(), DEFAULT_DROPPED_FROZEN);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_fps_dropped_frozen.name(), DEFAULT_DROPPED_FROZEN);
     }
 
     public int getHighThreshold() {
         return null == dynamicConfig
                 ? DEFAULT_DROPPED_HIGH
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_fps_dropped_high.name(), DEFAULT_DROPPED_HIGH);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_fps_dropped_high.name(), DEFAULT_DROPPED_HIGH);
     }
 
     public int getMiddleThreshold() {
         return null == dynamicConfig
                 ? DEFAULT_DROPPED_MIDDLE
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_fps_dropped_middle.name(), DEFAULT_DROPPED_MIDDLE);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_fps_dropped_middle.name(), DEFAULT_DROPPED_MIDDLE);
     }
 
     public int getNormalThreshold() {
         return null == dynamicConfig
                 ? DEFAULT_DROPPED_NORMAL
-                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_matrix_fps_dropped_normal.name(), DEFAULT_DROPPED_NORMAL);
+                : dynamicConfig.get(IDynamicConfig.ExptEnum.clicfg_swan_fps_dropped_normal.name(), DEFAULT_DROPPED_NORMAL);
     }
 
 

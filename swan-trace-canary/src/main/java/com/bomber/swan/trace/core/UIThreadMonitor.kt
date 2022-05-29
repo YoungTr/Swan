@@ -25,7 +25,7 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
     const val CALLBACK_ANIMATION = 1
     const val CALLBACK_TRAVERSAL = 2
 
-    const val DO_QUEUE_END_ERROR = -100
+    const val DO_QUEUE_END_ERROR = -100L
 
     private const val CALLBACK_LAST = CALLBACK_TRAVERSAL
 
@@ -91,9 +91,9 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
             DEFAULT_FRAME_DURATION
         )!!
     }
-    private val queueStatus = IntArray(CALLBACK_LAST + 1)
+    private var queueStatus = IntArray(CALLBACK_LAST + 1)
     private val callbackExist = BooleanArray(CALLBACK_LAST + 1) // ABA
-    private val queueCost = LongArray(CALLBACK_LAST + 1)
+    private var queueCost = LongArray(CALLBACK_LAST + 1)
     private const val DO_QUEUE_DEFAULT = 0
     private const val DO_QUEUE_BEGIN = 1
     private const val DO_QUEUE_END = 2
@@ -182,6 +182,8 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
                 )
             }
             if (!useFrameMetrics) {
+                queueStatus = IntArray(CALLBACK_LAST + 1)
+                queueCost = LongArray(CALLBACK_LAST + 1)
                 addFrameCallback(CALLBACK_INPUT, this, true)
             }
         }
@@ -276,6 +278,23 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
         this.isVsyncFrame = true
     }
 
+    private fun doFrameEnd(token: Long) {
+        doQueueEnd(CALLBACK_TRAVERSAL)
+        for (i in queueStatus) {
+            queueCost[i] = DO_QUEUE_END_ERROR
+            if (config.isDevEnv) {
+                throw RuntimeException(
+                    String.format(
+                        "UIThreadMonitor happens type[%s] != DO_QUEUE_END",
+                        i
+                    )
+                )
+            }
+        }
+        queueStatus = IntArray(CALLBACK_LAST + 1)
+        addFrameCallback(CALLBACK_INPUT, this, true)
+    }
+
     private fun doQueueBegin(type: Int) {
         queueStatus[type] = DO_QUEUE_BEGIN
         queueCost[type] = System.nanoTime()
@@ -289,10 +308,82 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
 
 
     private fun dispatchBegin() {
+        token = System.nanoTime().apply { dispatchTimeMs[0] = this }
+        dispatchTimeMs[2] = SystemClock.currentThreadTimeMillis()
+        if (config.isAppMethodBeatEnable) {
+            AppMethodBeat.i(AppMethodBeat.METHOD_ID_DISPATCH)
+        }
+        synchronized(observers) {
+            observers.forEach {
+                if (!it.isDispatchBegin()) {
+                    it.dispatchBegin(dispatchTimeMs[0], dispatchTimeMs[2], token)
+                }
+            }
+        }
 
     }
 
-    private fun dispatchEnd() {}
+    private fun dispatchEnd() {
+        var traceBegin = 0L
+        if (config.isDevEnv) {
+            traceBegin = System.nanoTime()
+        }
+        if (config.isFPSEnable && !useFrameMetrics) {
+            val startNs = token
+            var intendedFrameTimeNs = startNs
+            if (isVsyncFrame) {
+                doFrameEnd(token)
+                intendedFrameTimeNs = getIntendedFrameTimeNs(startNs)
+            }
+
+            val endNs = System.nanoTime()
+            synchronized(observers) {
+                observers.forEach {
+                    if (it.isDispatchBegin()) {
+                        it.doFrame(
+                            "todo",
+                            startNs,
+                            endNs,
+                            isVsyncFrame,
+                            intendedFrameTimeNs,
+                            queueCost[CALLBACK_INPUT],
+                            queueCost[CALLBACK_ANIMATION],
+                            queueCost[CALLBACK_TRAVERSAL]
+                        )
+                    }
+                }
+            }
+            if (config.isEvilMethodTraceEnable || config.isDevEnv) {
+                dispatchTimeMs[3] = SystemClock.currentThreadTimeMillis()
+                dispatchTimeMs[1] = System.nanoTime()
+            }
+            AppMethodBeat.o(AppMethodBeat.METHOD_ID_DISPATCH)
+            synchronized(observers) {
+                observers.forEach {
+                    if (it.isDispatchBegin()) {
+                        it.dispatchEnd(
+                            dispatchTimeMs[0], dispatchTimeMs[2], dispatchTimeMs[1],
+                            dispatchTimeMs[3], token, isVsyncFrame
+                        )
+                    }
+                }
+            }
+            this.isVsyncFrame = false
+            if (config.isDevEnv) {
+                SwanLog.d(
+                    TAG,
+                    "[dispatchEnd#run] inner cost:%sns",
+                    System.nanoTime() - traceBegin
+                )
+
+            }
+        }
+    }
+
+    private fun getIntendedFrameTimeNs(defaultValue: Long): Long {
+        return ReflectUtils.reflectObject(vsyncReceiver, "mTimestampNanos", defaultValue)!!
+    }
+
 
     fun addObserver(observer: LooperObserver) {
         if (!isAlive) {
@@ -304,6 +395,12 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
     }
 
     fun removeObserver(observer: LooperObserver) {
+        synchronized(observers) {
+            observers.apply {
+                remove(observer)
+                if (isEmpty()) onStop()
+            }
 
+        }
     }
 }

@@ -13,7 +13,7 @@ import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
  * @author youngtr
  * @data 2022/4/9
  */
-object ResourceMatrixPlugin : Plugin() {
+class ResourceMatrixPlugin : Plugin() {
 
     @Volatile
     var config: ResourceConfig = ResourceConfig(resultCallback = result())

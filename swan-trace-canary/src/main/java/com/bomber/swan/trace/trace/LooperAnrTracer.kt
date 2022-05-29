@@ -3,31 +3,44 @@ package com.bomber.swan.trace.trace
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import com.bomber.swan.trace.config.TraceConfig
 import com.bomber.swan.trace.constants.*
 import com.bomber.swan.trace.core.AppMethodBeat
+import com.bomber.swan.trace.core.UIThreadMonitor
 import com.bomber.swan.trace.items.MethodItem
 import com.bomber.swan.trace.util.IStructuredDataFilter
 import com.bomber.swan.trace.util.TraceDataMarker
 import com.bomber.swan.util.*
+import com.bomber.swan.util.SystemInfo.calculateCpuUsage
 import java.util.*
 
 /**
  * @author youngtr
  * @data 2022/5/21
  */
-class LooperAnrTracer : Tracer() {
+class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
+
+    private val isAnrTraceEnable = traceConfig.isAnrTraceEnable
 
     private val anrHandler by lazy { Handler(globalHandler.looper) }
     private val lagHandler by lazy { Handler(globalHandler.looper) }
-    private val anrTask by lazy { Runnable { } }
+    private val anrTask by lazy { AnrTask() }
 
     override fun onAlive() {
         super.onAlive()
+        if (isAnrTraceEnable) {
+            UIThreadMonitor.addObserver(this)
+        }
 
     }
 
     override fun onDead() {
         super.onDead()
+        if (isAnrTraceEnable) {
+            UIThreadMonitor.removeObserver(this)
+            anrTask.beginRecord?.release()
+            anrHandler.removeCallbacksAndMessages(null)
+        }
     }
 
 
@@ -40,10 +53,30 @@ class LooperAnrTracer : Tracer() {
         isVsyncFrame: Boolean
     ) {
         super.dispatchEnd(beginNs, cpuBeginMs, endNs, cpuEndMs, token, isVsyncFrame)
+        val cost: Long = (endNs - beginNs) / TIME_MILLIS_TO_NANO
+        SwanLog.v(
+            TAG, "[dispatchEnd] token:%s cost:%sms cpu:%sms usage:%s",
+            token, cost,
+            cpuEndMs - cpuBeginMs, calculateCpuUsage(cpuEndMs - cpuBeginMs, cost)
+        )
+        anrTask.beginRecord?.release()
+        anrHandler.removeCallbacks(anrTask)
     }
 
     override fun dispatchBegin(beginNs: Long, cpuBeginNs: Long, token: Long) {
         super.dispatchBegin(beginNs, cpuBeginNs, token)
+        anrTask.beginRecord = AppMethodBeat.getInstance().maskIndex("AnrTrace#dispatchBegin")
+        anrTask.token = token
+        if (traceConfig.isDevEnv) {
+            SwanLog.v(
+                TAG,
+                "* [dispatchBegin] token:%s index:%s",
+                token,
+                anrTask.beginRecord!!.index
+            )
+        }
+        val cost = (System.nanoTime() - token) / TIME_MILLIS_TO_NANO
+        anrHandler.postDelayed(anrTask, DEFAULT_ANR - cost)
 
     }
 
@@ -153,19 +186,27 @@ class LooperAnrTracer : Tracer() {
             stackCost: Long
         ): String {
             val print = java.lang.StringBuilder()
-            print.append(String.format("-\n>>>>>>>>>>>>>>>>>>>>>>> maybe happens ANR(%s ms)! <<<<<<<<<<<<<<<<<<<<<<<\n", stackCost))
+            print.append(
+                String.format(
+                    "-\n>>>>>>>>>>>>>>>>>>>>>>> maybe happens ANR(%s ms)! <<<<<<<<<<<<<<<<<<<<<<<\n",
+                    stackCost
+                )
+            )
             print.append("|* [Status]").append("\n")
             print.append("|*\t\tScene: ").append(scene).append("\n")
             print.append("|*\t\tForeground: ").append(isForeground).append("\n")
-            print.append("|*\t\tPriority: ").append(processStat.priority).append("\tNice: ").append(processStat.nice).append("\n")
+            print.append("|*\t\tPriority: ").append(processStat.priority).append("\tNice: ")
+                .append(processStat.nice).append("\n")
             print.append("|*\t\tis64BitRuntime: ").append(is64BitRuntime()).append("\n")
             print.append("|* [Memory]").append("\n")
-            print.append("|*\t\tDalvikHeap: ").append(memoryInfo.totalInKb - memoryInfo.freeInKb).append("kb\n")
+            print.append("|*\t\tDalvikHeap: ").append(memoryInfo.totalInKb - memoryInfo.freeInKb)
+                .append("kb\n")
             print.append("|*\t\tNativeHeap: ").append(memoryInfo.nativeHeap).append("\n")
             print.append("|*\t\tVmSize: ").append(processStatus.vssInKb).append("kb\n")
             print.append("|* [doFrame]").append("\n")
             print.append("|*\t\tinputCost:animationCost:traversalCost").append("\n")
-            print.append("|*\t\t").append(inputCost).append(":").append(animationCost).append(":").append(traversalCost).append("\n")
+            print.append("|*\t\t").append(inputCost).append(":").append(animationCost).append(":")
+                .append(traversalCost).append("\n")
             print.append("|* [Thread]").append("\n")
             print.append(String.format("|*\t\tStack(%s): ", state)).append(dumpStack)
             print.append("|* [Trace]").append("\n")
@@ -173,7 +214,12 @@ class LooperAnrTracer : Tracer() {
                 print.append("|*\t\tStackKey: ").append(stackKey).append("\n")
                 print.append(stack.toString())
             } else {
-                print.append(String.format("AppMethodBeat is close[%s].", AppMethodBeat.getInstance().isAlive())).append("\n")
+                print.append(
+                    String.format(
+                        "AppMethodBeat is close[%s].",
+                        AppMethodBeat.getInstance().isAlive()
+                    )
+                ).append("\n")
             }
             print.append("=========================================================================")
             return print.toString()

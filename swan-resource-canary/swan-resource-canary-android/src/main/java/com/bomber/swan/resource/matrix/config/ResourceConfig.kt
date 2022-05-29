@@ -1,6 +1,5 @@
 package com.bomber.swan.resource.matrix.config
 
-import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
 import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
 import com.bomber.swan.resource.matrix.dumper.HeapDumper
 import com.bomber.swan.resource.matrix.dumper.NoHeapDumper
@@ -63,7 +62,7 @@ data class ResourceConfig(
      * LeakCanary.config = LeakCanary.config.copy(retainedVisibleThreshold = 3)
      * ```
      */
-    class Builder internal constructor(config: ResourceConfig) {
+    class Builder internal constructor(private val config: ResourceConfig) {
         private var dumpHeapMode = config.dumpHeapMode
         private var dumpHeapWhenDebugging = config.dumpHeapWhenDebugging
         private var retainedVisibleThreshold = config.retainedVisibleThreshold
@@ -122,7 +121,7 @@ data class ResourceConfig(
 //                apply { this.eventListeners = eventListeners }
 
 
-        fun build() = ResourceMatrixPlugin.config.copy(
+        fun build() = config.copy(
             dumpHeapMode = dumpHeapMode,
             dumpHeapWhenDebugging = dumpHeapWhenDebugging,
             retainedVisibleThreshold = retainedVisibleThreshold,

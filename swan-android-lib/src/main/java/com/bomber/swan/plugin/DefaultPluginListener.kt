@@ -7,9 +7,11 @@ import com.bomber.swan.util.SwanLog
  * @author youngtr
  * @data 2022/4/10
  */
-object DefaultPluginListener : PluginListener {
+open class DefaultPluginListener : PluginListener {
 
-    private const val TAG = "Swan.PluginListener"
+    companion object {
+        private const val TAG = "Swan.PluginListener"
+    }
 
     override fun onInit(plugin: Plugin) {
         SwanLog.i(TAG, "%s plugin is inited", plugin.getTag())
