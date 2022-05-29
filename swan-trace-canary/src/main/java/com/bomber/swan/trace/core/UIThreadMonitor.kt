@@ -353,31 +353,33 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
                     }
                 }
             }
-            if (config.isEvilMethodTraceEnable || config.isDevEnv) {
-                dispatchTimeMs[3] = SystemClock.currentThreadTimeMillis()
-                dispatchTimeMs[1] = System.nanoTime()
-            }
-            AppMethodBeat.o(AppMethodBeat.METHOD_ID_DISPATCH)
-            synchronized(observers) {
-                observers.forEach {
-                    if (it.isDispatchBegin()) {
-                        it.dispatchEnd(
-                            dispatchTimeMs[0], dispatchTimeMs[2], dispatchTimeMs[1],
-                            dispatchTimeMs[3], token, isVsyncFrame
-                        )
-                    }
+        }
+
+        if (config.isEvilMethodTraceEnable || config.isDevEnv) {
+            dispatchTimeMs[3] = SystemClock.currentThreadTimeMillis()
+            dispatchTimeMs[1] = System.nanoTime()
+        }
+        AppMethodBeat.o(AppMethodBeat.METHOD_ID_DISPATCH)
+        synchronized(observers) {
+            observers.forEach {
+                if (it.isDispatchBegin()) {
+                    it.dispatchEnd(
+                        dispatchTimeMs[0], dispatchTimeMs[2], dispatchTimeMs[1],
+                        dispatchTimeMs[3], token, isVsyncFrame
+                    )
                 }
             }
-            this.isVsyncFrame = false
-            if (config.isDevEnv) {
-                SwanLog.d(
-                    TAG,
-                    "[dispatchEnd#run] inner cost:%sns",
-                    System.nanoTime() - traceBegin
-                )
-
-            }
         }
+        this.isVsyncFrame = false
+        if (config.isDevEnv) {
+            SwanLog.d(
+                TAG,
+                "[dispatchEnd#run] inner cost:%sns",
+                System.nanoTime() - traceBegin
+            )
+
+        }
+
     }
 
     private fun getIntendedFrameTimeNs(defaultValue: Long): Long {

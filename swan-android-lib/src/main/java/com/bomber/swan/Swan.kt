@@ -47,6 +47,16 @@ class Swan private constructor(
         plugins.forEach { it.destroy() }
     }
 
+    fun <T : Plugin> getPlugin(plugin: Class<T>): T? {
+        val name = plugin.name
+        plugins.forEach {
+            if (it.javaClass.name.equals(name)) {
+                return it as T
+            }
+        }
+        return null
+    }
+
     class SwanBuilder(
         val application: Application,
         val plugins: Set<Plugin>,

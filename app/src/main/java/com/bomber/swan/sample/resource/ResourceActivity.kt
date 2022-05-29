@@ -10,9 +10,10 @@ class ResourceActivity : AppCompatActivity() {
 
     companion object {
         private var activityLeak: Activity? = null
-        private var bitmap: Bitmap? = null
 
     }
+
+    private var bitmap: Bitmap? = null
 
 
     private val intArray = mutableListOf<Int>()

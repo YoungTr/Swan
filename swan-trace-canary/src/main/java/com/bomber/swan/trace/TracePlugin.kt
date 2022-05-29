@@ -12,7 +12,7 @@ import com.bomber.swan.util.SwanLog
 
 class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
 
-    var isSupported = false
+    var isSupported = true
         private set
     private var supportFrameMetrics = false
 
@@ -34,6 +34,18 @@ class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
             supportFrameMetrics = true
         }
 
+        looperAnrTracer = LooperAnrTracer(traceConfig)
+
+    }
+
+
+    override fun start() {
+        super.start()
+        if (!isSupported) {
+            SwanLog.w(TAG, "[start] plugin is unSupported!")
+            return
+        }
+
         if (traceConfig.willUiThreadMonitorRunning()) {
             if (!UIThreadMonitor.isInit) {
                 UIThreadMonitor.init(traceConfig, supportFrameMetrics)
@@ -51,13 +63,6 @@ class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
         if (traceConfig.isAnrTraceEnable) {
             looperAnrTracer.onStartTrace()
         }
-
-    }
-
-
-    override fun start() {
-        super.start()
-        looperAnrTracer.onStartTrace()
 
     }
 

@@ -8,4 +8,4 @@ else
   ./gradlew :app:iD --offline --parallel --daemon --stacktrace
 fi
 
-adb shell am start com.bomber.swan/.MainActivity
+adb shell am start com.bomber.swan.sample/.MainActivity

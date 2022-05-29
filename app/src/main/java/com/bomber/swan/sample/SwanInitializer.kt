@@ -72,7 +72,11 @@ object SwanInitializer {
     }
 
     private fun configureResourcePlugin(dynamicConfig: DynamicConfigImplDemo): ResourceMatrixPlugin {
-        return ResourceMatrixPlugin()
+
+        return ResourceMatrixPlugin().apply {
+            this.config = config.copy(retainedVisibleThreshold = 1)
+
+        }
     }
 
 }

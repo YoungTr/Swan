@@ -235,13 +235,9 @@ class LooperMonitor(private val looper: Looper) : MessageQueue.IdleHandler {
                     } else {
                         if (it.isHasDispatchStart) {
                             if (it.historyMsgRecord) {
-                                recordMsg(
-                                    log,
-                                    System.currentTimeMillis() - messageStartTime,
-                                    it.denseMsgTracer
-                                )
-                                it.onDispatchEnd(log)
+                                recordMsg(log, System.currentTimeMillis() - messageStartTime, it.denseMsgTracer)
                             }
+                            it.onDispatchEnd(log)
                         }
                     }
                 } else if (!isBegin && it.isHasDispatchStart) {
