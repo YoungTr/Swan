@@ -4,6 +4,7 @@ buildscript {
         classpath libs.kotlinPlugin
         classpath libs.androidPlugin
         classpath libs.gradlePlugin.mavenPublish
+        classpath libs.swan.plugin
     }
 }
 

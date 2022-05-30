@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         google()
         mavenCentral()
@@ -10,6 +11,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        mavenLocal()
     }
 }
 rootProject.name = "Swan"
@@ -28,3 +30,4 @@ include ':swan-third-libs:shark-libs:shark-hprof'
 include ':swan-third-libs:shark-libs:shark-log'
 include ':swan-gradle-plugin'
 include ':swan-trace-canary'
+include ':swan-commons'

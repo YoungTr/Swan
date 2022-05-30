@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
+    id 'com.vanniktech.maven.publish'
 }
 
 java {
@@ -13,5 +14,6 @@ dependencies {
     implementation gradleApi()
     implementation libs.asm
     implementation libs.asm.commons
-    implementation libs.hunter
+    implementation project(':swan-commons')
+//    implementation libs.hunter
 }

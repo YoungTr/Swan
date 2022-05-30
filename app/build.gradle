@@ -1,6 +1,20 @@
+buildscript {
+    dependencies {
+        classpath libs.swan.plugin
+    }
+}
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.bomber.swan.SwanPlugin'
+}
+
+trace {
+    baseMethodMapFile = ""
+    blackListFile = ""
+    customDexTransformName = ""
+    skipCheckClass = true
 }
 
 android {

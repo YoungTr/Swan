@@ -1,10 +1,12 @@
 package com.bomber.swan.plugin.extension
 
-class SwanTraceExtension(
-    var baseMethodMapFile: String,
-    var blackListFile: String,
-    var customDexTransformName: String,
-    var skipCheckClass: Boolean = true
+open class SwanTraceExtension(
+    var baseMethodMapFile: String = "",
+    var blackListFile: String = "",
+    var customDexTransformName: String = "",
+    var transformInjectionForced: Boolean = false,
+    var skipCheckClass: Boolean = true,
+    var enable: Boolean = false
 ) {
 
     override fun toString(): String {

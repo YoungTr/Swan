@@ -144,6 +144,16 @@ class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
                 )
             )
 
+            // frame
+            val inputCost: Long =
+                UIThreadMonitor.getQueueCost(UIThreadMonitor.CALLBACK_INPUT, token!!)
+            val animationCost: Long =
+                UIThreadMonitor.getQueueCost(
+                    UIThreadMonitor.CALLBACK_ANIMATION, token!!
+                )
+            val traversalCost: Long =
+                UIThreadMonitor.getQueueCost(UIThreadMonitor.CALLBACK_TRAVERSAL, token!!)
+
             val stackKey = TraceDataMarker.geTreeKey(stack, stackCost)
             SwanLog.w(
                 TAG, "%s \npostTime:%s curTime:%s",
@@ -158,9 +168,9 @@ class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
                     stack.size.toLong(),
                     stackKey,
                     dumpStack,
-                    0,
-                    0,
-                    0,
+                    inputCost,
+                    animationCost,
+                    traversalCost,
                     stackCost.toLong()
                 ),
                 token!!.div(TIME_MILLIS_TO_NANO), current

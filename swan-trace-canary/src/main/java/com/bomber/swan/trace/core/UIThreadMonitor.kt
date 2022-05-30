@@ -92,7 +92,7 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
         )!!
     }
     private var queueStatus = IntArray(CALLBACK_LAST + 1)
-    private val callbackExist = BooleanArray(CALLBACK_LAST + 1) // ABA
+    private var callbackExist = BooleanArray(CALLBACK_LAST + 1) // ABA
     private var queueCost = LongArray(CALLBACK_LAST + 1)
     private const val DO_QUEUE_DEFAULT = 0
     private const val DO_QUEUE_BEGIN = 1
@@ -180,6 +180,7 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
                     callbackExist.contentToString(),
                     getStack()
                 )
+                callbackExist = BooleanArray(CALLBACK_LAST + 1)
             }
             if (!useFrameMetrics) {
                 queueStatus = IntArray(CALLBACK_LAST + 1)
@@ -404,5 +405,12 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
             }
 
         }
+    }
+
+    fun getQueueCost(type: Int, token: Long): Long {
+        if (token != this.token) {
+            return -1
+        }
+        return if (queueStatus[type] == DO_QUEUE_END) queueCost[type] else 0
     }
 }
