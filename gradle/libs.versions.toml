@@ -34,6 +34,7 @@ androidX-appcompat = { module = "androidx.appcompat:appcompat", version = "1.4.1
 
 okio2 = { module = "com.squareup.okio:okio", version = "2.2.2" }
 okio1 = { module = "com.squareup.okio:okio", version = "1.14.0" }
+commons-io = { module = "commons-io:commons-io", version = "2.11.0" }
 
 assertjCore = { module = "org.assertj:assertj-core", version = "3.9.1" }
 junit = { module = "junit:junit", version = "4.12" }

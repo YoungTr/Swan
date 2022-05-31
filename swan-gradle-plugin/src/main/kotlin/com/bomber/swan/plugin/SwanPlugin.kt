@@ -1,7 +1,7 @@
 package com.bomber.swan.plugin
 
-import com.android.Version
 import com.android.build.gradle.AppExtension
+import com.bomber.swan.javalib.util.Log
 import com.bomber.swan.plugin.extension.SwanTraceExtension
 import com.bomber.swan.plugin.task.SwanTaskManager
 import org.gradle.api.GradleException
@@ -18,9 +18,7 @@ class SwanPlugin : Plugin<Project> {
             throw GradleException("Swan Plugin, Android Application plugin required")
         }
 
-        project.afterEvaluate {
-            println("Gradle version: ${Version.ANDROID_GRADLE_PLUGIN_VERSION}")
-        }
+        Log.setLogLevel("D")
 
         SwanTaskManager.createSwanTasks(
             project.extensions.getByName("android") as AppExtension,

@@ -1,9 +1,3 @@
-buildscript {
-    dependencies {
-        classpath libs.swan.plugin
-    }
-}
-
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -11,10 +5,11 @@ plugins {
 }
 
 trace {
-    baseMethodMapFile = ""
-    blackListFile = ""
+    baseMethodMapFile = "${project.projectDir}/trace/methodMapping.txt"
+    blackListFile = "${project.projectDir}/trace/blackMethodlist.txt"
     customDexTransformName = ""
     skipCheckClass = true
+    enable = true
 }
 
 android {

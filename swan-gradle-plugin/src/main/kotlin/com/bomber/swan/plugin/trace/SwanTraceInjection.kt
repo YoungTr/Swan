@@ -3,6 +3,7 @@ package com.bomber.swan.plugin.trace
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
 import com.android.builder.model.CodeShrinker
+import com.bomber.swan.javalib.util.Log
 import com.bomber.swan.plugin.compat.CreationConfig.Companion.getCodeShrinker
 import com.bomber.swan.plugin.extension.ITraceSwitchListener
 import com.bomber.swan.plugin.extension.SwanTraceExtension
@@ -37,20 +38,24 @@ object SwanTraceInjection : ITraceSwitchListener {
         android.applicationVariants.all { variant ->
             if (injectTaskOrTransform(project, traceExtension, variant) == InjectionMode.TransformInjection) {
                 transformInjection()
-            } else{
+            } else {
                 taskInjection(project, traceExtension, variant)
             }
         }
     }
 
-    private fun transformInjection() {}
+    private fun transformInjection() {
+        Log.i(TAG, "Using trace transform mode.")
+        transform!!.transparent = false
+    }
 
     private fun taskInjection(
         project: Project,
         traceExtension: SwanTraceExtension,
         variant: BaseVariant
     ) {
-        transform!!.transparent = false
+        // todo
+        Log.i(TAG, "Using trace task mode.")
     }
 
 
