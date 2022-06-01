@@ -28,6 +28,13 @@ class SwanTrace(
 ) {
 
 
+    /**
+     * [classInputs] transform 输入的文件
+     * [changedFiles] 改动的文件
+     * [inputToOutput] transform 输入文件对应的输出文件
+     * [skipCheckClass] 跳过检查 class
+     * [traceClassDirectoryOutput] transform 的根目录，[inputToOutput]中的文件存放在该目录
+     */
     fun doTransform(
         classInputs: Collection<File>,
         changedFiles: Map<File, Status>,
@@ -71,7 +78,13 @@ class SwanTrace(
             )
         )
 
+        /**
+         * dirInputOutMap 需要进行插桩的 class 文件
+         */
         val dirInputOutMap = ConcurrentHashMap<File, File>()
+        /**
+         * jarInputOutMap 需要进行插桩的 class 文件
+         */
         val jarInputOutMap = ConcurrentHashMap<File, File>()
 
         for (file in classInputs) {
@@ -116,6 +129,9 @@ class SwanTrace(
             future.get()
         }
         futures.clear()
+
+        Log.d(TAG, "dirInputOutMap: $dirInputOutMap")
+        Log.d(TAG, "jarInputOutMap: $jarInputOutMap")
 
     }
 
@@ -256,6 +272,9 @@ class SwanTrace(
             val inputFullPath = dirInput.absolutePath
             val outputFullPath = dirOutput.absolutePath
 
+            Log.d(TAG, "CollectDirectoryInputTask input %s -> output %s", dirInput, dirOutput)
+
+
             if (!dirOutput.exists()) {
                 dirOutput.mkdirs()
             }
@@ -358,12 +377,6 @@ class SwanTrace(
                 }
 
             } else {
-
-                // TODO for wechat
-                Log.i(
-                    TAG,
-                    "Special case for WeChat AutoDex. Its rootInput jar file is actually a txt file contains path list."
-                )
                 // Special case for WeChat AutoDex. Its rootInput jar file is actually
                 // a txt file contains path list.
                 jarInput.inputStream().bufferedReader().useLines { lines ->

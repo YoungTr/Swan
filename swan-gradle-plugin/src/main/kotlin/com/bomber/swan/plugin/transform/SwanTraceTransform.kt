@@ -101,6 +101,8 @@ class SwanTraceTransform(
         val outputDirectory = transformDirectory
         Log.i(TAG, "output directory: $outputDirectory")
 
+        Log.d(TAG, "changed files: $changedFiles")
+
         SwanTrace(
             ignoreMethodMapFilePath = config.ignoreMethodMapFilePath,
             methodMapFilePath = config.methodMapFilePath,
