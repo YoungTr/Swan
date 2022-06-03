@@ -5,7 +5,7 @@ import com.android.utils.FileUtils
 import com.bomber.swan.javalib.util.IOUtil
 import com.bomber.swan.javalib.util.Log
 import com.bomber.swan.javalib.util.Util
-import com.bomber.swan.plugin.item.TraceMethod
+import com.bomber.swan.plugin.trace.item.TraceMethod
 import com.bomber.swan.plugin.trace.retrace.MappingCollector
 import com.bomber.swan.plugin.trace.retrace.MappingReader
 import com.google.common.hash.Hashing
@@ -82,6 +82,7 @@ class SwanTrace(
          * dirInputOutMap 需要进行插桩的 class 文件
          */
         val dirInputOutMap = ConcurrentHashMap<File, File>()
+
         /**
          * jarInputOutMap 需要进行插桩的 class 文件
          */
@@ -130,8 +131,44 @@ class SwanTrace(
         }
         futures.clear()
 
+        Log.i(TAG, "[doTransform] Step(1)[Parse]... cost:%sms", System.currentTimeMillis() - start)
+
         Log.d(TAG, "dirInputOutMap: $dirInputOutMap")
         Log.d(TAG, "jarInputOutMap: $jarInputOutMap")
+
+        /**
+         * step 2
+         */
+        start = System.currentTimeMillis()
+        val methodCollector =
+            MethodCollector(executor, mappingCollector, methodId, config, collectedMethodMap)
+
+        methodCollector.collect(dirInputOutMap.keys, jarInputOutMap.keys)
+        Log.i(
+            TAG,
+            "[doTransform] Step(2)[Collection]... cost:%sms",
+            System.currentTimeMillis() - start
+        )
+
+        /**
+         * step 3
+         */
+        start = System.currentTimeMillis()
+        val methodTracer = MethodTracer(
+            executor,
+            mappingCollector,
+            config,
+            methodCollector.collectedMethodMap,
+            methodCollector.collectedClassExtendMap
+        )
+        val allInputs = ArrayList<File>().also {
+            it.addAll(dirInputOutMap.keys)
+            it.addAll(jarInputOutMap.keys)
+        }
+        val traceClassLoader = TraceClassLoader.getClassLoader(project, allInputs)
+        methodTracer.trace(dirInputOutMap, jarInputOutMap, traceClassLoader, skipCheckClass)
+
+        Log.i(TAG, "[doTransform] Step(3)[Trace]... cost:%sms", System.currentTimeMillis() - start)
 
     }
 

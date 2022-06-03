@@ -1,15 +1,15 @@
-package com.bomber.swan.sample
+package sample.com.bomber.swan
 
 import android.app.Application
 import android.content.Context
 import com.bomber.swan.Swan
 import com.bomber.swan.plugin.Plugin
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
-import com.bomber.swan.sample.config.DynamicConfigImplDemo
-import com.bomber.swan.sample.listeners.TestPluginListener
 import com.bomber.swan.trace.TracePlugin
 import com.bomber.swan.trace.config.TraceConfig
 import com.bomber.swan.util.SwanLog
+import sample.com.bomber.swan.config.DynamicConfigImplDemo
+import sample.com.bomber.swan.listeners.TestPluginListener
 import java.io.File
 
 object SwanInitializer {

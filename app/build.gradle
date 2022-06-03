@@ -17,7 +17,7 @@ android {
     ndkVersion libs.versions.ndkVersion.get()
 
     defaultConfig {
-        applicationId "com.bomber.swan.sample"
+        applicationId "sample.com.bomber.swan"
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode libs.versions.versionCode.get().toInteger()

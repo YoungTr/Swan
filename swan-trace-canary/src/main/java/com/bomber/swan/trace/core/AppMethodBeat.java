@@ -7,6 +7,7 @@ import static com.bomber.swan.util.HandlersKt.getGlobalHandler;
 import static com.bomber.swan.util.HandlersKt.newHandlerThread;
 import static com.bomber.swan.util.StackUtilKt.getStack;
 
+import android.app.Activity;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -14,11 +15,18 @@ import android.os.SystemClock;
 
 import androidx.annotation.WorkerThread;
 
+import com.bomber.swan.trace.listeners.IAppMethodBeatListener;
 import com.bomber.swan.util.SwanLog;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class AppMethodBeat implements BeatLifecycle {
 
     private static final String TAG = "Swan.AppMethodBeat";
+
+    private static final Set<String> sFocusActivitySet = new HashSet<>();
+    private static final HashSet<IAppMethodBeatListener> listeners = new HashSet<>();
 
     /**
      * state
@@ -318,6 +326,37 @@ public class AppMethodBeat implements BeatLifecycle {
                 break;
             }
         }
+    }
+
+    /**
+     * when the special method calls,it's will be called.
+     * <p>
+     * called after {@link #i(int)}
+     *
+     * @param activity now at which activity
+     * @param isFocus  this window if has focus
+     */
+    public static void at(Activity activity, boolean isFocus) {
+        String activityName = activity.getClass().getName();
+        if (isFocus) {
+            if (sFocusActivitySet.add(activityName)) {
+                synchronized (listeners) {
+                    for (IAppMethodBeatListener listener : listeners) {
+                        listener.onActivityFocused(activity);
+                    }
+                }
+                SwanLog.i(TAG, "[at] visibleScene[%s] has %s focus!", getVisibleScene(), "attach");
+            }
+        } else {
+            if (sFocusActivitySet.remove(activityName)) {
+                SwanLog.i(TAG, "[at] visibleScene[%s] has %s focus!", getVisibleScene(), "detach");
+            }
+        }
+    }
+
+    public static String getVisibleScene() {
+        // TODO: 2022/6/3
+        return "SwanActivity";
     }
 
     public static final class IndexRecord {

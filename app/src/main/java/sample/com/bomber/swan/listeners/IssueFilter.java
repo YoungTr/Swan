@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bomber.swan.sample.listeners;
+package sample.com.bomber.swan.listeners;
 
 import androidx.annotation.StringDef;
 

@@ -1,4 +1,4 @@
-package com.bomber.swan.sample
+package sample.com.bomber.swan
 
 import android.app.Application
 

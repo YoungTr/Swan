@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bomber.swan.sample.config;
+package sample.com.bomber.swan.config;
 
 /** @author zhoushaotao
 *   Created by zhoushaotao on 2018/10/9.

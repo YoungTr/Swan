@@ -1,10 +1,10 @@
-package com.bomber.swan.sample.resource
+package sample.com.bomber.swan.resource
 
 import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.bomber.swan.sample.databinding.ActivityResourceBinding
+import sample.com.bomber.swan.databinding.ActivityResourceBinding
 
 class ResourceActivity : AppCompatActivity() {
 

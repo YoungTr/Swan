@@ -1,0 +1,4 @@
+[package]
+-keeppackage facebook/
+-keeppackage com/squareup/
+-keeppackage androidx/

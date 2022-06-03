@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bomber.swan.plugin.item;
+package com.bomber.swan.plugin.trace.item;
 
 
 import com.bomber.swan.javalib.util.Util;

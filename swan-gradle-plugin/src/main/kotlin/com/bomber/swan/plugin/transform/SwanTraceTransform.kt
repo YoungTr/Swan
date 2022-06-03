@@ -125,7 +125,6 @@ class SwanTraceTransform(
         val cost = System.currentTimeMillis() - start
         Log.i(TAG, " Insert matrix trace instrumentations cost time: %sms.", cost)
 
-
     }
 
     /**
