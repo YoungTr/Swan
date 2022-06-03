@@ -15,8 +15,9 @@ class TraceActivity : AppCompatActivity() {
         binding = ActivityTraceBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-    }
+        val student = Student("Curry", 34)
 
+    }
 
 
     fun textAnr(view: View) {
@@ -29,6 +30,7 @@ class TraceActivity : AppCompatActivity() {
         funD()
         funE()
         funF()
+        recursion(10)
     }
 
     fun funB() {

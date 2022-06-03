@@ -40,6 +40,7 @@ public class TraceBuildConstants {
                     + "-keeppackage androidx/\n"
                     + "-keeppackage kotlin/\n"
                     + "-keeppackage kotlinx/\n"
+                    + "-keeppackage com/google/android/\n"
                     + "-keeppackage com/bomber/swan/\n";
 
     private static final int METHOD_ID_MAX = 0xFFFFF;
