@@ -16,6 +16,7 @@ class Swan private constructor(
         @JvmStatic
         fun isInstalled() = ::instance.isInitialized
 
+        @JvmStatic
         fun init(swan: Swan): Swan {
             if (!isInstalled()) this.instance = swan
             return instance

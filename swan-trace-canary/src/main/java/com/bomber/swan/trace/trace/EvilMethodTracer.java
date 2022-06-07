@@ -51,7 +51,7 @@ import java.util.LinkedList;
 
 public class EvilMethodTracer extends Tracer {
 
-    private static final String TAG = "Matrix.EvilMethodTracer";
+    private static final String TAG = "Swan.EvilMethodTracer";
     private final TraceConfig config;
     private AppMethodBeat.IndexRecord indexRecord;
     private long[] queueTypeCosts = new long[3];

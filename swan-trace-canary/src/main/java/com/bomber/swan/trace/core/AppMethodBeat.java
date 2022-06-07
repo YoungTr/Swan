@@ -220,7 +220,7 @@ public class AppMethodBeat implements BeatLifecycle {
             if (sIndex >= BUFFER_SIZE) {
                 sIndex = 0;
             }
-            SwanLog.d(TAG, "in " + methodId + " index: " + sIndex);
+//            SwanLog.d(TAG, "in " + methodId + " index: " + sIndex);
             mergeData(methodId, sIndex, true);
             ++sIndex;
             assertIn = false;
@@ -240,7 +240,7 @@ public class AppMethodBeat implements BeatLifecycle {
             if (sIndex >= BUFFER_SIZE) {
                 sIndex = 0;
             }
-            SwanLog.d(TAG, "out " + methodId + " index: " + sIndex);
+//            SwanLog.d(TAG, "out " + methodId + " index: " + sIndex);
             mergeData(methodId, sIndex, false);
             ++sIndex;
         }

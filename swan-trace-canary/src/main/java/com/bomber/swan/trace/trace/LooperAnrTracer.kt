@@ -53,12 +53,14 @@ class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
         isVsyncFrame: Boolean
     ) {
         super.dispatchEnd(beginNs, cpuBeginMs, endNs, cpuEndMs, token, isVsyncFrame)
-        val cost: Long = (endNs - beginNs) / TIME_MILLIS_TO_NANO
-        SwanLog.v(
-            TAG, "[dispatchEnd] token:%s cost:%sms cpu:%sms usage:%s",
-            token, cost,
-            cpuEndMs - cpuBeginMs, calculateCpuUsage(cpuEndMs - cpuBeginMs, cost)
-        )
+        if (traceConfig.isDevEnv) {
+            val cost: Long = (endNs - beginNs) / TIME_MILLIS_TO_NANO
+            SwanLog.v(
+                TAG, "[dispatchEnd] token:%s cost:%sms cpu:%sms usage:%s",
+                token, cost,
+                cpuEndMs - cpuBeginMs, calculateCpuUsage(cpuEndMs - cpuBeginMs, cost)
+            )
+        }
         anrTask.beginRecord?.release()
         anrHandler.removeCallbacks(anrTask)
     }
@@ -207,7 +209,7 @@ class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
             print.append("|*\t\tForeground: ").append(isForeground).append("\n")
             print.append("|*\t\tPriority: ").append(processStat.priority).append("\tNice: ")
                 .append(processStat.nice).append("\n")
-            print.append("|*\t\tis64BitRuntime: ").append(is64BitRuntime()).append("\n")
+            print.append("|*\t\tis64BitRuntime: ").append(DeviceUtil.is64BitRuntime()).append("\n")
             print.append("|* [Memory]").append("\n")
             print.append("|*\t\tDalvikHeap: ").append(memoryInfo.totalInKb - memoryInfo.freeInKb)
                 .append("kb\n")
