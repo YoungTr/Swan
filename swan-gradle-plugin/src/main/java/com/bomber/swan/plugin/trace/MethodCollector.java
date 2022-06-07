@@ -328,6 +328,7 @@ public class MethodCollector {
                 while (iterator.hasNext()) {
                     Log.d(TAG, "opcode: " + iterator.next().getOpcode());
                 }
+                Log.d(TAG, name + " empty: " + isEmptyMethod() + " get or set: " + isGetSetMethod() + " single: " + isSingleMethod());
             }
 
             boolean isNeedTrace = isNeedTrace(configuration, traceMethod.className, mappingCollector);

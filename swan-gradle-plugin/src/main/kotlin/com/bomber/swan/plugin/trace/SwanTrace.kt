@@ -193,7 +193,7 @@ class SwanTrace(
                 mappingReader.read(mappingCollector)
             }
             /**
-             * 读取不进行插桩的 package class
+             * 读取已经插桩过的 method trace
              */
             val size = config.parseBlockFile(mappingCollector)
 
