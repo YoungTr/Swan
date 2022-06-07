@@ -99,9 +99,9 @@ class SwanTraceTransform(
 
         // Get transform root dir
         val outputDirectory = transformDirectory
-        Log.i(TAG, "output directory: $outputDirectory")
+//        Log.i(TAG, "output directory: $outputDirectory")
 
-        Log.d(TAG, "changed files: $changedFiles")
+//        Log.d(TAG, "changed files: $changedFiles")
 
         SwanTrace(
             ignoreMethodMapFilePath = config.ignoreMethodMapFilePath,
@@ -221,7 +221,7 @@ class SwanTraceTransform(
             dirName
         )
 
-        Log.d(TAG, "mapping out: $mappingOut")
+//        Log.d(TAG, "mapping out: $mappingOut")
 
         return Configuration.Builder()
             .setBaseMethodMap(traceExtension.baseMethodMapFile)

@@ -67,4 +67,9 @@ class TraceActivity : AppCompatActivity() {
         }
     }
 
+    fun textEvil(view: View) {
+        funB()
+        funF()
+    }
+
 }

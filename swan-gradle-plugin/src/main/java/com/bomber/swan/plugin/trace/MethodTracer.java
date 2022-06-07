@@ -371,7 +371,6 @@ public class MethodTracer {
         protected void onMethodEnter() {
             TraceMethod traceMethod = collectedMethodMap.get(methodName);
             if (traceMethod != null) {
-                Log.d(TAG, "trace method: " + traceMethod);
                 traceMethodCount.incrementAndGet();
                 mv.visitLdcInsn(traceMethod.id);
                 mv.visitMethodInsn(INVOKESTATIC, TraceBuildConstants.SWAN_TRACE_METHOD_BEAT_CLASS, "i", "(I)V", false);

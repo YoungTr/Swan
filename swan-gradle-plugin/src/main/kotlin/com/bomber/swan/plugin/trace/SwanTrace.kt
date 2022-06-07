@@ -133,8 +133,8 @@ class SwanTrace(
 
         Log.i(TAG, "[doTransform] Step(1)[Parse]... cost:%sms", System.currentTimeMillis() - start)
 
-        Log.d(TAG, "dirInputOutMap: $dirInputOutMap")
-        Log.d(TAG, "jarInputOutMap: $jarInputOutMap")
+//        Log.d(TAG, "dirInputOutMap: $dirInputOutMap")
+//        Log.d(TAG, "jarInputOutMap: $jarInputOutMap")
 
         /**
          * step 2

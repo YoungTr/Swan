@@ -14,8 +14,22 @@
         android:onClick="textAnr"
         android:text="Test ANR"
         android:textSize="26dp"
+        app:layout_constraintBottom_toTopOf="@+id/evil_text"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/evil_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="textEvil"
+        android:text="Test EVIL"
+        android:textSize="26dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/sample_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

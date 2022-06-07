@@ -78,7 +78,7 @@ object TraceDataMarker {
                     val outTime = getTime(trueId)
                     val inTime = getTime(inId)
                     val during = outTime - inTime
-                    SwanLog.d(TAG, "method: $methodId, cast: $during")
+//                    SwanLog.d(TAG, "method: $methodId, cast: $during")
                     if (during < 0) {
                         SwanLog.e(TAG, "[structureDataToStack] trace during invalid:%d", during)
                         rawData.clear()
