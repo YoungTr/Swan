@@ -5,10 +5,10 @@ package com.bomber.swan.report
  * @data 2022/4/9
  */
 data class Issue(
-    val type: Int,
+    val type: Int = 0,
     var tag: String? = null,
     val key: String? = null,
-    val content: String,
+    var content: String = "",
     var files: MutableList<String> = mutableListOf()
 ) {
 

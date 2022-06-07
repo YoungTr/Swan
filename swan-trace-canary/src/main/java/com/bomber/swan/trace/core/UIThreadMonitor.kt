@@ -388,6 +388,7 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
     }
 
 
+    @JvmStatic
     fun addObserver(observer: LooperObserver) {
         if (!isAlive) {
             onStart()
@@ -397,6 +398,7 @@ object UIThreadMonitor : BeatLifecycle, Runnable {
         }
     }
 
+    @JvmStatic
     fun removeObserver(observer: LooperObserver) {
         synchronized(observers) {
             observers.apply {

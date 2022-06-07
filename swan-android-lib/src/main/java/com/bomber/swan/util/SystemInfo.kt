@@ -190,6 +190,7 @@ object SystemInfo {
         }
     }
 
+    @JvmStatic
     fun calculateCpuUsage(threadMs: Long, ms: Long): String? {
         if (threadMs <= 0) {
             return if (ms > 1000) "0%" else "100%"

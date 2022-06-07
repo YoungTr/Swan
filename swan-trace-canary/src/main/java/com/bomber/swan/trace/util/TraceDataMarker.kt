@@ -12,6 +12,7 @@ import java.util.*
  * @author youngtr
  * @data 2022/5/22
  */
+
 object TraceDataMarker {
 
     private const val TAG = "Swan.TraceData"
@@ -19,6 +20,7 @@ object TraceDataMarker {
     /**
      * [100,0,1,1,2,2,3,3,4,4,5,5,0]
      */
+    @JvmStatic
     fun structuredDataToStack(
         buffer: LongArray,
         result: LinkedList<MethodItem>,
@@ -200,6 +202,7 @@ object TraceDataMarker {
      * 最大的堆栈 count，默认30个
      * 将耗时太短的方法裁剪掉，[filter.isFilter(item.durTime.toLong(), filterCount)]
      */
+    @JvmStatic
     fun trimStack(
         stack: LinkedList<MethodItem>,
         targetCount: Int = TARGET_EVIL_METHOD_STACK,
@@ -236,6 +239,7 @@ object TraceDataMarker {
         }
     }
 
+    @JvmStatic
     fun stackToString(
         stack: LinkedList<MethodItem>,
         reportBuilder: StringBuilder,
@@ -257,7 +261,8 @@ object TraceDataMarker {
         return stackCost
     }
 
-    fun geTreeKey(stack: LinkedList<MethodItem>, stackCost: Int): String {
+    @JvmStatic
+    fun getTreeKey(stack: LinkedList<MethodItem>, stackCost: Int): String {
         val ss = StringBuilder()
         val allLimit = (stackCost * FILTER_STACK_KEY_ALL_PERCENT).toLong()
 

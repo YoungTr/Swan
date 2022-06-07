@@ -21,6 +21,7 @@ class Swan private constructor(
             return instance
         }
 
+        @JvmStatic
         fun with(): Swan {
             if (!isInstalled()) {
                 throw RuntimeException("you must init Swan sdk first")

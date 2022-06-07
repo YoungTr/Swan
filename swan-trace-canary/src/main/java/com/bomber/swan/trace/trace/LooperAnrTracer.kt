@@ -154,7 +154,7 @@ class LooperAnrTracer(private val traceConfig: TraceConfig) : Tracer() {
             val traversalCost: Long =
                 UIThreadMonitor.getQueueCost(UIThreadMonitor.CALLBACK_TRAVERSAL, token!!)
 
-            val stackKey = TraceDataMarker.geTreeKey(stack, stackCost)
+            val stackKey = TraceDataMarker.getTreeKey(stack, stackCost)
             SwanLog.w(
                 TAG, "%s \npostTime:%s curTime:%s",
                 printAnr(
