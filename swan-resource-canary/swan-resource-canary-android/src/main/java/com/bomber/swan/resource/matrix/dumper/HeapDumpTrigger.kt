@@ -88,7 +88,10 @@ class HeapDumpTrigger(
         // check again
         var retainedReferenceCount = objectWatcher.retainedObjectCount
         if (retainedReferenceCount > 0) {
-            gcTrigger.runGc()
+            repeat(3) {
+                gcTrigger.runGc()
+                sleep(1000)
+            }
             retainedReferenceCount = objectWatcher.retainedObjectCount
         }
 

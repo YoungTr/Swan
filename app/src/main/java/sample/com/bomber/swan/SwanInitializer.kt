@@ -5,6 +5,7 @@ import android.content.Context
 import com.bomber.swan.Swan
 import com.bomber.swan.plugin.Plugin
 import com.bomber.swan.resource.matrix.ResourceMatrixPlugin
+import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
 import com.bomber.swan.trace.TracePlugin
 import com.bomber.swan.trace.config.TraceConfig
 import com.bomber.swan.util.SwanLog
@@ -74,7 +75,8 @@ object SwanInitializer {
     private fun configureResourcePlugin(dynamicConfig: DynamicConfigImplDemo): ResourceMatrixPlugin {
 
         return ResourceMatrixPlugin().apply {
-            this.config = config.copy(retainedVisibleThreshold = 1)
+            this.config =
+                config.copy(retainedVisibleThreshold = 1, dumpHeapMode = DumpHeapMode.NormalDump)
 
         }
     }

@@ -228,7 +228,6 @@ object AndroidDebugHeapAnalyzer {
             // Fragment
             if (fragmentHeapClass?.objectId == superId1) {
                 val className = fragmentHeapClass.name
-                SwanLog.d(TAG, "fragment class name: $className")
                 val fragmentManager = instance[className, FRAGMENT_MANAGER_FIELD_NAME]
                 if (fragmentManager != null && fragmentManager.value.asObject == null) {
                     val mCalledField = instance[className, FRAGMENT_MCALLED_FIELD_NAME]
@@ -329,7 +328,6 @@ object AndroidDebugHeapAnalyzer {
             val arraySize = objectArray.recordSize
             if (arraySize >= DEFAULT_BIG_OBJECT_ARRAY) {
                 val arrayName = objectArray.arrayClassName
-                SwanLog.d(TAG, "object array name $arrayName object id: ${objectArray.objectId}")
                 leakingObjectIds.add(objectArray.objectId)
                 val leakObject = LeakObject(
                     className = arrayName,

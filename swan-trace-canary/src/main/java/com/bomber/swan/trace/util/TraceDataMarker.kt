@@ -80,7 +80,7 @@ object TraceDataMarker {
                     val during = outTime - inTime
 //                    SwanLog.d(TAG, "method: $methodId, cast: $during")
                     if (during < 0) {
-                        SwanLog.e(TAG, "[structureDataToStack] trace during invalid:%d", during)
+                        SwanLog.e(TAG, "[structureDataToStack] tr.ace during invalid:%d", during)
                         rawData.clear()
                         result.clear()
                         return
@@ -104,13 +104,13 @@ object TraceDataMarker {
             addMethodItem(result, methodItem)
         }
 
-        for (item in result) {
-            SwanLog.d(TAG, "$item")
-        }
+//        for (item in result) {
+//            SwanLog.d(TAG, "$item")
+//        }
 
         val root = TreeNode(null, null)
         val count = stackToTree(result, root)
-        SwanLog.i(TAG, "stackTree count: $count")
+//        SwanLog.i(TAG, "stackTree count: $count")
         result.clear()
         treeToStack(root, result)
     }

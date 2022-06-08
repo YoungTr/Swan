@@ -1,14 +1,11 @@
 package com.bomber.swan.resource.matrix.config
 
-import com.bomber.swan.resource.matrix.dumper.DumpHeapMode
-import com.bomber.swan.resource.matrix.dumper.HeapDumper
-import com.bomber.swan.resource.matrix.dumper.NoHeapDumper
-import com.bomber.swan.resource.matrix.dumper.NormalHeapDumper
+import com.bomber.swan.resource.matrix.dumper.*
 import shark.*
 
 data class ResourceConfig(
 
-    val dumpHeapMode: DumpHeapMode = DumpHeapMode.ForkDump,
+    val dumpHeapMode: DumpHeapMode = DumpHeapMode.NormalDump,
 
     val dumpHeapWhenDebugging: Boolean = false,
 
@@ -33,6 +30,6 @@ data class ResourceConfig(
     val heapDumper: HeapDumper = when (dumpHeapMode) {
         DumpHeapMode.NoDump -> NoHeapDumper
         DumpHeapMode.NormalDump -> NormalHeapDumper
-        DumpHeapMode.ForkDump -> NormalHeapDumper
+        DumpHeapMode.ForkDump -> ForkJvmHeapDumper
     }
 )
