@@ -1,5 +1,6 @@
 package com.bomber.swan.util
 
+import android.os.Looper
 import kotlin.math.min
 
 @JvmOverloads
@@ -46,4 +47,12 @@ fun printException(e: Exception): String {
         t.append("\n")
     }
     return t.toString()
+}
+
+fun getMainThreadJavaStackTrace(): String {
+    val stackTrace = java.lang.StringBuilder()
+    for (stackTraceElement in Looper.getMainLooper().thread.stackTrace) {
+        stackTrace.append(stackTraceElement.toString()).append("\n")
+    }
+    return stackTrace.toString()
 }

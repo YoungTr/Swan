@@ -9,6 +9,7 @@ import com.bomber.swan.trace.core.AppMethodBeat
 import com.bomber.swan.trace.core.UIThreadMonitor
 import com.bomber.swan.trace.trace.EvilMethodTracer
 import com.bomber.swan.trace.trace.LooperAnrTracer
+import com.bomber.swan.trace.trace.SignalAnrTracer
 import com.bomber.swan.util.SwanLog
 
 class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
@@ -19,6 +20,7 @@ class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
 
     private lateinit var looperAnrTracer: LooperAnrTracer
     private lateinit var evilMethodTracer: EvilMethodTracer
+    private lateinit var signalAnrTracer: SignalAnrTracer
 
 
     override fun init(application: Application, pluginListener: PluginListener) {
@@ -38,6 +40,7 @@ class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
 
         looperAnrTracer = LooperAnrTracer(traceConfig)
         evilMethodTracer = EvilMethodTracer(traceConfig)
+        signalAnrTracer = SignalAnrTracer(traceConfig)
 
     }
 
@@ -71,12 +74,17 @@ class TracePlugin(private val traceConfig: TraceConfig) : Plugin() {
             evilMethodTracer.onStartTrace()
         }
 
+        if (traceConfig.isSignalAnrTraceEnable) {
+            signalAnrTracer.onStartTrace()
+        }
+
     }
 
     override fun stop() {
         super.stop()
         looperAnrTracer.onCloseTrace()
         evilMethodTracer.onCloseTrace()
+        signalAnrTracer.onCloseTrace()
     }
 
     private fun TraceConfig.willUiThreadMonitorRunning(): Boolean {
