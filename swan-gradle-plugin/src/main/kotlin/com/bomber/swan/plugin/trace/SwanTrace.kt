@@ -392,7 +392,7 @@ class SwanTrace(
                 File(traceClassFileOutput, outputJarName)
             }
 
-            Log.d(TAG, "CollectJarInputTask input %s -> output %s", jarInput, jarOutput)
+//            Log.d(TAG, "CollectJarInputTask input %s -> output %s", jarInput, jarOutput)
 
             if (!isIncremental && jarOutput.exists()) {
                 jarOutput.delete()

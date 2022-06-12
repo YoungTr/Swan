@@ -51,7 +51,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 public class SignalAnrTracer extends Tracer {
-    private static final String TAG = "SignalAnrTracer";
+    private static final String TAG = "Swan.SignalAnrTracer";
 
     private static final String CHECK_ANR_STATE_THREAD_NAME = "Check-ANR-State-Thread";
     private static final int CHECK_ERROR_STATE_INTERVAL = 500;
@@ -76,14 +76,14 @@ public class SignalAnrTracer extends Tracer {
     private static long onAnrDumpedTimeStamp = 0;
 
     static {
-        System.loadLibrary("trace-canary");
+        System.loadLibrary("swan-trace");
     }
 
     @Override
     public void onAlive() {
         super.onAlive();
         if (!hasInit) {
-            nativeInitSignalAnrDetective(sAnrTraceFilePath, sPrintTraceFilePath);
+            nativeInitSignalAnrDetective(sAnrTraceFilePath, sPrintTraceFilePath, Build.VERSION.SDK_INT);
             AppForegroundUtil.INSTANCE.init();
             hasInit = true;
         }
@@ -339,7 +339,7 @@ public class SignalAnrTracer extends Tracer {
         nativePrintTrace();
     }
 
-    private static native void nativeInitSignalAnrDetective(String anrPrintTraceFilePath, String printTraceFilePath);
+    private static native void nativeInitSignalAnrDetective(String anrPrintTraceFilePath, String printTraceFilePath, int apiLevel);
 
     private static native void nativeFreeSignalAnrDetective();
 

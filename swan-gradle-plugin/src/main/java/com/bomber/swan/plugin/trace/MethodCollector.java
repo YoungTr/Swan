@@ -322,14 +322,6 @@ public class MethodCollector {
             if ("<init>".equals(name)) {
                 isConstructor = true;
             }
-            if (traceMethod.className.contains("Student")) {
-                Log.d(TAG, "method name: " + name);
-                ListIterator<AbstractInsnNode> iterator = instructions.iterator();
-                while (iterator.hasNext()) {
-                    Log.d(TAG, "opcode: " + iterator.next().getOpcode());
-                }
-                Log.d(TAG, name + " empty: " + isEmptyMethod() + " get or set: " + isGetSetMethod() + " single: " + isSingleMethod());
-            }
 
             boolean isNeedTrace = isNeedTrace(configuration, traceMethod.className, mappingCollector);
             // filter simple methods

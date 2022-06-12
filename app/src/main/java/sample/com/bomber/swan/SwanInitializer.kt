@@ -37,7 +37,7 @@ object SwanInitializer {
         val fpsEnable = dynamicConfig.isFPSEnable
         val traceEnable = dynamicConfig.isTraceEnable
         val signalAnrTraceEnable = dynamicConfig.isSignalAnrTraceEnable
-        val traceFileDir: File = File(context.filesDir, "matrix_trace")
+        val traceFileDir: File = File(context.filesDir, "swan_trace")
         if (!traceFileDir.exists()) {
             if (traceFileDir.mkdirs()) {
                 SwanLog.e(TAG, "failed to create traceFileDir")

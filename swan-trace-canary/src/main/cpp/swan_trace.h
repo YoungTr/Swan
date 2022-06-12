@@ -14,6 +14,8 @@ extern "C" {
 #define SA_JNI_VERSION    JNI_VERSION_1_6
 #define SA_JNI_CLASS_NAME "com/bomber/swan/trace/trace/SignalAnrTracer"
 
+int anrDumpCallback(JNIEnv *env);
+
 #ifdef __cplusplus
 }
 #endif
