@@ -51,8 +51,10 @@ static const JNINativeMethod ANR_METHODS[] = {
 };
 
 int anrDumpCallback(JNIEnv *env) {
+    LOGD("anrDumpCallback");
     if (!env || NULL == gJ.AnrDetective) return -1;
     (*env)->CallStaticVoidMethod(env, gJ.AnrDetective, gJ.AnrDetector_onANRDumped);
+    JNI_IGNORE_PENDING_EXCEPTION();
     return 0;
 }
 

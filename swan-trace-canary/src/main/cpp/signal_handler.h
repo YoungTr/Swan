@@ -8,8 +8,6 @@
 #include <jni.h>
 
 
-#define ERRNO_SYS     ((0 != errno) ? errno : 1004)
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -22,6 +22,7 @@ class TraceActivity : AppCompatActivity() {
 
     fun textAnr(view: View) {
         funA()
+        sleep(5000)
     }
 
     fun funA() {
