@@ -11,6 +11,17 @@ set(PROJECT_NAME "swan-trace")
 
 project(${PROJECT_NAME})
 
+
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../swan-third-libs)
+
+include_directories(
+        ${THIRD_PARTY_DIR}/xhook/src/main/cpp/
+)
+
+link_directories(
+        ${THIRD_PARTY_DIR}/xhook/src/main/libs/${ANDROID_ABI}/
+)
+
 file(GLOB SWAN_SRC
         *.c)
 
@@ -51,6 +62,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries( # Specifies the target library.
         ${PROJECT_NAME}
 
+        swan-xhook
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})
