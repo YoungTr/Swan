@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    ndkVersion libs.versions.ndkVersion.get()
+
+    defaultConfig {
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=none"
+//                if(rootProject.ext.useASAN) {
+//                    arguments "-DANDROID_ARM_MODE=arm"
+//                    arguments "-DUSEASAN=ON"
+//                }
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.18.1"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+    buildFeatures {
+        prefabPublishing true
+    }
+    prefab {
+        xdl {
+            headers "src/main/cpp/include"
+        }
+    }
+}

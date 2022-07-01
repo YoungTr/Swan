@@ -4,7 +4,7 @@
 #include <sys/prctl.h>
 #include "log.h"
 #include <wait.h>
-#include <elf.h>
+#include "xdl.h"
 
 #include <unistd.h>
 #include "sn_dumper.h"

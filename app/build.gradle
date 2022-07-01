@@ -71,4 +71,5 @@ dependencies {
     implementation project(':swan-third-libs:shark-libs:shark-android')
     implementation project(':swan-trace-canary')
     implementation project(':swan-third-libs:xhook')
+    implementation project(':swan-third-libs:xdl')
 }

@@ -16,10 +16,12 @@ set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../swan-third-libs)
 
 include_directories(
         ${THIRD_PARTY_DIR}/xhook/src/main/cpp/
+        ${THIRD_PARTY_DIR}/xdl/src/main/cpp/
 )
 
 link_directories(
         ${THIRD_PARTY_DIR}/xhook/src/main/libs/${ANDROID_ABI}/
+        ${THIRD_PARTY_DIR}/xdl/src/main/libs/${ANDROID_ABI}/
 )
 
 file(GLOB SWAN_SRC
@@ -63,6 +65,7 @@ target_link_libraries( # Specifies the target library.
         ${PROJECT_NAME}
 
         swan-xhook
+#        xdl
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

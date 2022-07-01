@@ -17,6 +17,18 @@ file(GLOB SWAN_SRC
         dlfcn/*.c
         resource.cpp)
 
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../swan-third-libs)
+
+include_directories(
+        ${THIRD_PARTY_DIR}/xhook/src/main/cpp/
+        ${THIRD_PARTY_DIR}/xdl/src/main/cpp/include/
+)
+
+link_directories(
+        ${THIRD_PARTY_DIR}/xhook/src/main/libs/${ANDROID_ABI}/
+        ${THIRD_PARTY_DIR}/xdl/src/main/libs/${ANDROID_ABI}/
+)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -55,7 +67,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_link_libraries( # Specifies the target library.
         ${PROJECT_NAME}
-
+        swan-xhook
+        xdl
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})
