@@ -11,6 +11,7 @@ import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
 import sample.com.bomber.swan.databinding.ActivityMainBinding
+import sample.com.bomber.swan.hook.HookActivity
 import sample.com.bomber.swan.resource.ResourceActivity
 import sample.com.bomber.swan.trace.TraceActivity
 import java.io.File
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity() {
         }
         binding.traceActivity.setOnClickListener {
             TraceActivity.start(this)
+        }
+        binding.hookActivity.setOnClickListener {
+            HookActivity.start(this)
         }
         // Example of a call to a native method
 //        binding.sampleText.text = stringFromJNI()
