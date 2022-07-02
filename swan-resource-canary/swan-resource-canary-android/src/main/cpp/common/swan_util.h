@@ -2,8 +2,8 @@
 // Created by YoungTr on 2022/4/14.
 //
 
-#ifndef SWAN_SN_UTIL_H
-#define SWAN_SN_UTIL_H
+#ifndef SWAN_SWAN_UTIL_H
+#define SWAN_SWAN_UTIL_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -30,4 +30,4 @@ char *util_trim(char *start);
 }
 #endif
 
-#endif //SWAN_SN_UTIL_H
+#endif //SWAN_SWAN_UTIL_H

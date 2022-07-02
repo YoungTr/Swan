@@ -8,6 +8,7 @@ import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import com.bomber.swan.resource.matrix.EventListener
 import com.bomber.swan.resource.matrix.analyzer.AndroidDebugHeapAnalyzer
+import com.bomber.swan.resource.matrix.dumper.ForkJvmHeapDumper
 import com.bomber.swan.util.SwanLog
 import com.bomber.swan.util.newHandlerThread
 import sample.com.bomber.swan.databinding.ActivityMainBinding
@@ -16,6 +17,7 @@ import sample.com.bomber.swan.resource.ResourceActivity
 import sample.com.bomber.swan.trace.TraceActivity
 import java.io.File
 import java.util.*
+import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,8 +46,13 @@ class MainActivity : AppCompatActivity() {
 
         binding.parseHprof.setOnClickListener {
 
+            thread {
+                ForkJvmHeapDumper.textSuspend()
+            }
+
             SwanLog.d(TAG, "parse hprof file")
 
+            /**
             kotlin.runCatching {
                 val hprofFile =
                     File("/data/user/0/com.bomber.swan/cache/swanresource/2022-04-24_14-58-44_805.hprof")
@@ -77,6 +84,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             }
+            **/
         }
     }
 

@@ -5,7 +5,7 @@ import shark.*
 
 data class ResourceConfig(
 
-    val dumpHeapMode: DumpHeapMode = DumpHeapMode.NormalDump,
+    val dumpHeapMode: DumpHeapMode = DumpHeapMode.ForkDump,
 
     val dumpHeapWhenDebugging: Boolean = false,
 

@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <ctype.h>
-#include "sn_util.h"
+#include "swan_util.h"
 
 char *util_trim(char *start) {
     char *end;
