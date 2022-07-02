@@ -33,12 +33,8 @@ int swan_dump_init() {
     LOGD(">>> xdl_open(%s) : handle %" PRIxPTR, "libart.so", (uintptr_t) handler);
 
     if (swan_common_api_level < __ANDROID_API_R__) { // < android 11
-        if (NULL ==
-            (dump_libart_resumed = xdl_sym(handler, SWAN_UTIL_LIBART_DBG_RESUME, NULL)))
-            goto end;
-        if (NULL ==
-            (dump_libart_suspend = xdl_sym(handler, SWAN_UTIL_LIBART_DBG_SUSPEND, NULL)))
-            goto end;
+        if (NULL == (dump_libart_resumed = xdl_sym(handler, SWAN_UTIL_LIBART_DBG_RESUME, NULL))) goto end;
+        if (NULL == (dump_libart_suspend = xdl_sym(handler, SWAN_UTIL_LIBART_DBG_SUSPEND, NULL))) goto end;
         LOGD(">>> %s(%s) : addr %" PRIxPTR " ", "xdl_sym",
              SWAN_UTIL_LIBART_DBG_RESUME, (uintptr_t) dump_libart_resumed);
 
