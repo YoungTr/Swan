@@ -34,12 +34,14 @@ object ForkJvmHeapDumper : HeapDumper {
         }
     }
 
-    fun textSuspend() {
+    fun textSuspend(file: File) {
         if (initialized) {
             val pid = suspendAndFork(60)
             SwanLog.d(TAG, "pid: $pid")
             if (pid > 0) {
                 resumeAndWait(pid)
+            } else if(pid == 0) {
+                Debug.dumpHprofData(file.absolutePath)
             }
         }
     }

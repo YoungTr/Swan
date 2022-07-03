@@ -13,7 +13,8 @@ project(${PROJECT_NAME})
 
 file(GLOB SWAN_SRC
         common/*.c
-        resource.cpp)
+        resource.cpp
+        swan_mirror.cpp)
 
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../swan-third-libs)
 

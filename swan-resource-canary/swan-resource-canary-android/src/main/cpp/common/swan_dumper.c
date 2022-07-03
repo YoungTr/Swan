@@ -13,6 +13,7 @@
 #include "swan_errno.h"
 #include "swan_dumper.h"
 #include "swan_common.h"
+#include "../swan_mirror.h"
 
 static int swan_dump_symbols_loaded = 0;
 static int swan_dump_symbols_status = SWAN_ERRNO_NOTFND;
@@ -27,9 +28,6 @@ static swan_libart_sgc_destructor_fnc_ dump_sgc_destructor = NULL;
 static swan_libart_mutator_lock_ptr_ dump_mutator_lock_ptr = NULL;
 static swan_libart_exclusive_lock_fnc_ dump_exclusive_lock = NULL;
 static swan_libart_exclusive_unlock_fnc_ dump_exclusive_unlock = NULL;
-
-static void *swan_libart_ssa_instance;
-static void *swan_libart_sgc_instance;
 
 
 int swan_dump_init() {
@@ -72,8 +70,6 @@ int swan_dump_init() {
         if (NULL == (dump_sgc_constructor = xdl_sym(handler, SWAN_DUMP_LIBART_SGC_CONSTRUCTOR, NULL))) goto end;
         LOGD(">>> %s(%s) : addr %" PRIxPTR " ", "xdl_sym", SWAN_DUMP_LIBART_SGC_CONSTRUCTOR, (uintptr_t) dump_sgc_constructor);
 
-       swan_libart_sgc_instance = malloc(64);
-       swan_libart_ssa_instance = malloc(64);
     }
 
     swan_dump_symbols_status = 0;
@@ -88,11 +84,11 @@ pid_t swan_dump_suspend(int wait) {
         dump_libart_suspend();
     } else if (swan_common_api_level <= __ANDROID_API_S__) {
         void *self = __get_tls()[TLS_SLOT_ART_THREAD_SELF];
-        dump_sgc_constructor(swan_libart_sgc_instance, self, kGcCauseHprof, kCollectorTypeHprof);
-        dump_ssa_constructor(swan_libart_ssa_instance, "HprofDump", 1);
+//        swan_mirror_sgc_constructor(dump_sgc_constructor, self);
+        swan_mirror_ssa_constructor(dump_ssa_constructor);
         // avoid deadlock with child process
         dump_exclusive_unlock(*dump_mutator_lock_ptr, self);
-        dump_sgc_destructor(swan_libart_sgc_instance);
+        swan_mirror_sgc_destructor(dump_sgc_destructor);
     }
 
     pid_t pid = fork();
@@ -112,7 +108,7 @@ int swan_dump_resumed(pid_t pid) {
     } else if (swan_common_api_level <= __ANDROID_API_S__) {
         void *self = __get_tls()[TLS_SLOT_ART_THREAD_SELF];
         dump_exclusive_lock(*dump_mutator_lock_ptr, self);
-        dump_ssa_destructor(swan_libart_ssa_instance);
+        swan_mirror_ssa_destructor(dump_ssa_destructor);
     }
 
     int status;
