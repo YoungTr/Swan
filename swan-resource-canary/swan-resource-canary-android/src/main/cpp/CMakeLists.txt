@@ -56,6 +56,7 @@ find_library( # Sets the name of the path variable.
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         common
+        bionic
         log)
 
 # Specifies libraries CMake should link to your target library. You
