@@ -1,5 +1,6 @@
 package com.bomber.swan.plugin
 
+import com.bomber.swan.friendly.toJson
 import com.bomber.swan.report.Issue
 import com.bomber.swan.util.SwanLog
 
@@ -30,6 +31,7 @@ open class DefaultPluginListener : PluginListener {
     }
 
     override fun onReportIssue(issue: Issue) {
-        SwanLog.i(TAG, "report issue $issue")
+        String
+        SwanLog.i(TAG, "report issue ${issue.toJson()}")
     }
 }

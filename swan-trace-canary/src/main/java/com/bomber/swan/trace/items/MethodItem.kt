@@ -11,6 +11,8 @@ data class MethodItem(val methodId: Int, var durTime: Int, val depth: Int, var c
         durTime += cost
     }
 
+    override fun toString(): String = "$depth,$methodId,$count,$durTime"
+
     fun print(): String {
         val inner = StringBuffer()
         for (i in 0 until depth) {

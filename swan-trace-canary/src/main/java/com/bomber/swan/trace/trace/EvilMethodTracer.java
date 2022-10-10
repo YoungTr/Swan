@@ -199,7 +199,7 @@ public class EvilMethodTracer extends Tracer {
 
                 Issue issue = new Issue();
                 issue.setTag(SharePluginInfo.TAG_PLUGIN_EVIL_METHOD);
-                issue.setContent(jsonObject.toString());
+                issue.setContent(jsonObject);
                 plugin.onDetectIssue(issue);
 
             } catch (JSONException e) {

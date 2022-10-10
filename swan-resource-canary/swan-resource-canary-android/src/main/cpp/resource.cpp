@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <swan_common.h>
 #include "swan_dumper.h"
+#include "hprof_dumper.h"
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_bomber_swan_resource_NativeLib_stringFromJNI(
@@ -46,4 +47,26 @@ Java_com_bomber_swan_resource_matrix_dumper_ForkJvmHeapDumperKt_initializedNativ
     if (0 != (r = swan_dump_init())) return r;
     return 0;
 
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_bomber_swan_resource_matrix_dumper_ForkJvmHeapDumperKt_initializedPlus(JNIEnv *env,
+                                                                                jclass clazz) {
+    HprofDumper::getInstance().initialize();
+    return 0;
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_bomber_swan_resource_matrix_dumper_ForkJvmHeapDumperKt_suspendAndForkPlus(JNIEnv *env,
+                                                                                   jclass clazz,
+                                                                                   jint wait) {
+    return HprofDumper::getInstance().suspendAndFork();
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_bomber_swan_resource_matrix_dumper_ForkJvmHeapDumperKt_resumeAndWaitPlus(JNIEnv *env,
+                                                                                  jclass clazz,
+                                                                                  jint pid) {
+    HprofDumper::getInstance().resumeAndWait(pid);
+    return 0;
 }

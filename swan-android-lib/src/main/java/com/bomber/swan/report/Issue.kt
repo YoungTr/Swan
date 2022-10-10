@@ -1,5 +1,7 @@
 package com.bomber.swan.report
 
+import org.json.JSONObject
+
 /**
  * @author youngtr
  * @data 2022/4/9
@@ -8,7 +10,7 @@ data class Issue(
     val type: Int = 0,
     var tag: String? = null,
     val key: String? = null,
-    var content: String = "",
+    var content: JSONObject? = null,
     var files: MutableList<String> = mutableListOf()
 ) {
 

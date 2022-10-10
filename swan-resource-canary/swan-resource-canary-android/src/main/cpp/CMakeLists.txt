@@ -13,6 +13,7 @@ project(${PROJECT_NAME})
 
 file(GLOB SWAN_SRC
         common/*.c
+        dumper/*.cpp
         resource.cpp)
 
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../swan-third-libs)
@@ -56,6 +57,7 @@ find_library( # Sets the name of the path variable.
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         common
+        dumper
         log)
 
 # Specifies libraries CMake should link to your target library. You

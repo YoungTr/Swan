@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         binding.parseHprof.setOnClickListener {
 
             thread {
-                ForkJvmHeapDumper.textSuspend()
+                ForkJvmHeapDumper.dumpHeap(File(filesDir,"dumper.hprof"))
             }
 
             SwanLog.d(TAG, "parse hprof file")

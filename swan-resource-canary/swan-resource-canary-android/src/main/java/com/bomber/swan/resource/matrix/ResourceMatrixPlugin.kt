@@ -9,6 +9,7 @@ import com.bomber.swan.resource.matrix.config.IResultCallback
 import com.bomber.swan.resource.matrix.config.ResourceConfig
 import com.bomber.swan.resource.matrix.internal.InternalSwanResource
 import com.bomber.swan.resource.matrix.watcher.android.AppWatcher
+import org.json.JSONObject
 
 /**
  * @author youngtr
@@ -42,7 +43,7 @@ class ResourceMatrixPlugin : Plugin() {
 
     private fun result(): IResultCallback {
         return IResultCallback { hprofFile, jsonFile, result ->
-            val issue = Issue(ISSUE_LEAK_FOUND, content = result).apply {
+            val issue = Issue(ISSUE_LEAK_FOUND, content = JSONObject(result)).apply {
                 files.add(hprofFile)
                 files.add(jsonFile)
             }
