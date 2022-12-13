@@ -50,7 +50,7 @@ dependencies {
 
     implementation libs.core.ktx
     implementation libs.androidX.appcompat
-    implementation 'com.google.android.material:material:1.6.0'
+    implementation libs.android.material
     implementation project(path: ':swan-android-lib')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

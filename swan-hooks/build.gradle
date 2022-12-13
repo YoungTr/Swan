@@ -1,13 +1,11 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'com.vanniktech.maven.publish'
 }
 
 android {
     compileSdk libs.versions.compileSdk.get().toInteger()
     ndkVersion libs.versions.ndkVersion.get()
-
 
     defaultConfig {
         minSdk libs.versions.minSdk.get().toInteger()
@@ -18,7 +16,6 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ""
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
     }
@@ -49,7 +46,10 @@ dependencies {
     implementation libs.core.ktx
     implementation libs.androidX.appcompat
     implementation libs.android.material
+
+    implementation project(':swan-android-lib')
+
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
 }
