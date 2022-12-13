@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include "JNICommon.h"
+#include "ScopedCleaner.h"
 #include "Log.h"
 
 #define TAG "Swan.JNICommon"
@@ -60,6 +61,15 @@ Java_com_swan_bomber_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jo
         return false;
     }
     m_class_HookManager = reinterpret_cast<jclass>(env->NewGlobalRef(m_class_HookManager));
+    auto jHookMgrCleaner = swan::MakeScopedCleaner([env]() {
+        if (nullptr != m_class_HookManager) {
+            env->DeleteGlobalRef(m_class_HookManager);
+            m_class_HookManager = nullptr;
+        }
+    });
+
+
+    jHookMgrCleaner.Omit();
 
 
 
