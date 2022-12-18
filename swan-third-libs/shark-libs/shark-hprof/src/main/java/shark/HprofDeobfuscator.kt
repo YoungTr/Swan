@@ -1,17 +1,11 @@
 package shark
 
 import shark.HprofHeader.Companion.parseHeaderOf
-import shark.HprofRecord.HeapDumpEndRecord
+import shark.HprofRecord.*
 import shark.HprofRecord.HeapDumpRecord.ObjectRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ClassDumpRecord
+import shark.HprofRecord.HeapDumpRecord.ObjectRecord.*
 import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ClassDumpRecord.FieldRecord
 import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ClassDumpRecord.StaticFieldRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.InstanceDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ObjectArrayDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord
-import shark.HprofRecord.LoadClassRecord
-import shark.HprofRecord.StackFrameRecord
-import shark.HprofRecord.StringRecord
 import shark.StreamingRecordReaderAdapter.Companion.asStreamingRecordReader
 import java.io.File
 
@@ -83,6 +77,7 @@ class HprofDeobfuscator {
             is PrimitiveArrayDumpRecord -> maxId.coerceAtLeast(record.id)
           }
         }
+        else -> {}
       }
     }
     return Triple(hprofStringCache, classNames, maxId)

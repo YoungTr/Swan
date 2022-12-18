@@ -119,6 +119,31 @@ void thread_trace::add_hook_thread_name(const char *regex_str) {
 }
 
 
+void thread_trace::pthread_dump_json(const char *path) {
+
+}
+
+void thread_trace::enable_quicken_unwind(const bool enable) {
+
+}
+
+void thread_trace::enable_trace_pthread_release(const bool enable) {
+
+}
+
+
+thread_trace::routine_wrapper_t *
+thread_trace::wrap_pthread_routine(pthread_hook::pthread_routine_t start_routine, void *args) {
+    return nullptr;
+}
+
+
+void thread_trace::handle_pthread_create(const pthread_t pthread) {}
+
+void thread_trace::handle_pthread_setname_np(pthread_t pthread, const char *name) {}
+
+void thread_trace::handle_pthread_release(pthread_t pthread) {}
+
 
 
 

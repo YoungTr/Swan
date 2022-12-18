@@ -6,19 +6,39 @@
     android:layout_height="match_parent"
     tools:context=".resource.ResourceActivity">
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/big_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@mipmap/cat" />
+
     <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#10ffffff"
+        android:gravity="center"
         android:text="@string/app_name"
+        android:textColor="#ffffff"
         android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/thread_hook"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/big_img"
+    <TextView
+        android:id="@+id/thread_hook"
         android:layout_width="match_parent"
-        android:src="@mipmap/cat"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:background="#10ffffff"
+        android:gravity="center"
+        android:text="线程监控"
+        android:textColor="#ffffff"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

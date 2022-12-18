@@ -146,7 +146,29 @@ namespace pthread_hook {
             thread_trace::thread_trace_init();
         }
 
+        // do hook
+        {
+            xhook_register(".*/.*\\.so$",
+                           "pthread_create",
+                           (void *) HANDLER_FUNC_NAME(pthread_create),
+                           nullptr);
+            xhook_register(".*/.*\\.so$",
+                           "pthread_setname_np",
+                           (void *) HANDLER_FUNC_NAME(pthread_setname_np),
+                           nullptr);
+            xhook_register(".*/.*\\.so$",
+                           "pthread_detach",
+                           (void *) HANDLER_FUNC_NAME(pthread_detach),
+                           nullptr);
+            xhook_register(".*/.*\\.so$",
+                           "pthread_join",
+                           (void *) HANDLER_FUNC_NAME(pthread_join),
+                           nullptr);
 
+            xhook_enable_debug(enable_debug ? 1 : 0);
+            xhook_enable_sigsegv_protection(0);
+            xhook_refresh(0);
+        }
 
 
     }

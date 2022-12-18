@@ -3,7 +3,7 @@ package com.bomber.swan.hooks.pthread
 import androidx.annotation.Keep
 import com.bomber.swan.hooks.AbsHook
 
-private class PthreadHook : AbsHook() {
+class PthreadHook private constructor() : AbsHook() {
 
 
     companion object {

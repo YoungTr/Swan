@@ -55,6 +55,7 @@ link_directories(
         ${TARGET}
         ${THIRD_PARTY_DIR}/xhook/src/main/libs/${ANDROID_ABI}/
         ${THIRD_PARTY_DIR}/xdl/src/main/libs/${ANDROID_ABI}/
+        ${THIRD_PARTY_DIR}/matrix-backtrace/src/main/libs/${ANDROID_ABI}/
 )
 
 

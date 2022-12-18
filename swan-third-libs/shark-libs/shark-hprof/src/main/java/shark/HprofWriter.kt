@@ -3,57 +3,15 @@ package shark
 import okio.Buffer
 import okio.BufferedSink
 import okio.Okio
-import shark.GcRoot.Debugger
-import shark.GcRoot.Finalizing
-import shark.GcRoot.InternedString
-import shark.GcRoot.JavaFrame
-import shark.GcRoot.JniGlobal
-import shark.GcRoot.JniLocal
-import shark.GcRoot.JniMonitor
-import shark.GcRoot.MonitorUsed
-import shark.GcRoot.NativeStack
-import shark.GcRoot.ReferenceCleanup
-import shark.GcRoot.StickyClass
-import shark.GcRoot.ThreadBlock
-import shark.GcRoot.ThreadObject
-import shark.GcRoot.Unknown
-import shark.GcRoot.Unreachable
-import shark.GcRoot.VmInternal
-import shark.HprofRecord.HeapDumpEndRecord
+import shark.GcRoot.*
+import shark.HprofRecord.*
 import shark.HprofRecord.HeapDumpRecord.GcRootRecord
 import shark.HprofRecord.HeapDumpRecord.HeapDumpInfoRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ClassDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.InstanceDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.ObjectArrayDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.BooleanArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.ByteArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.CharArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.DoubleArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.FloatArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.IntArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.LongArrayDump
-import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.ShortArrayDump
-import shark.HprofRecord.LoadClassRecord
-import shark.HprofRecord.StackTraceRecord
-import shark.HprofRecord.StringRecord
-import shark.PrimitiveType.BOOLEAN
-import shark.PrimitiveType.BYTE
-import shark.PrimitiveType.CHAR
-import shark.PrimitiveType.DOUBLE
-import shark.PrimitiveType.FLOAT
-import shark.PrimitiveType.INT
-import shark.PrimitiveType.LONG
-import shark.PrimitiveType.SHORT
-import shark.ValueHolder.BooleanHolder
-import shark.ValueHolder.ByteHolder
-import shark.ValueHolder.CharHolder
-import shark.ValueHolder.DoubleHolder
-import shark.ValueHolder.FloatHolder
-import shark.ValueHolder.IntHolder
-import shark.ValueHolder.LongHolder
-import shark.ValueHolder.ReferenceHolder
-import shark.ValueHolder.ShortHolder
+import shark.HprofRecord.HeapDumpRecord.ObjectRecord.*
+import shark.HprofRecord.HeapDumpRecord.ObjectRecord.PrimitiveArrayDumpRecord.*
+import shark.HprofWriter.Companion.openWriterFor
+import shark.PrimitiveType.*
+import shark.ValueHolder.*
 import java.io.Closeable
 import java.io.File
 
@@ -347,6 +305,7 @@ class HprofWriter private constructor(
       is HeapDumpEndRecord -> {
         throw IllegalArgumentException("HprofWriter automatically emits HeapDumpEndRecord")
       }
+      else -> {}
     }
   }
 

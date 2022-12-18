@@ -27,7 +27,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ''
-                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters 'armeabi-v7a', 'arm64-v8a'//, 'x86', 'x86_64'
             }
         }
     }
@@ -72,4 +72,6 @@ dependencies {
     implementation project(':swan-trace-canary')
     implementation project(':swan-third-libs:xhook')
     implementation project(':swan-third-libs:xdl')
+    implementation project(':swan-hooks')
+    implementation project(':swan-third-libs:matrix-backtrace')
 }

@@ -3,8 +3,10 @@
 //
 #include <jni.h>
 #include <Log.h>
+#include "Log.h"
 #include "PthreadHook.h"
 #include "ThreadTrace.h"
+#include "PthreadHook.h"
 
 using namespace pthread_hook;
 using namespace thread_trace;
@@ -32,7 +34,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_bomber_swan_hooks_pthread_PthreadHook_enableLoggerNative(JNIEnv *env, jobject thiz,
                                                                   jboolean enable_logger) {
-    enable_hook_logger(enable_logger);
+//    enable_hook_logger(enable_logger);
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -45,10 +47,15 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_bomber_swan_hooks_pthread_PthreadHook_installHooksNative(JNIEnv *env, jobject thiz,
                                                                   jboolean enable_debug) {
-
+    InstallHooks(enable_debug);
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_bomber_swan_hooks_pthread_PthreadHook_dumpNative(JNIEnv *env, jobject thiz, jstring path) {
-
+Java_com_bomber_swan_hooks_pthread_PthreadHook_dumpNative(JNIEnv *env, jobject thiz,
+                                                          jstring jpath) {
+    if (jpath) {
+        const char *path = env->GetStringUTFChars(jpath, nullptr);
+        pthread_dump_json(path);
+        env->ReleaseStringUTFChars(jpath, path);
+    }
 }
