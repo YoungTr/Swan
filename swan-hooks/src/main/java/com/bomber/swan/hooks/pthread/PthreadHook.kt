@@ -1,5 +1,6 @@
 package com.bomber.swan.hooks.pthread
 
+import androidx.annotation.Keep
 import com.bomber.swan.hooks.AbsHook
 
 private class PthreadHook : AbsHook() {
@@ -24,11 +25,43 @@ private class PthreadHook : AbsHook() {
         return "swan-pthreadhook"
     }
 
+
+    fun dump(path: String) {
+        if (status == Status.COMMIT_SUCCESS) {
+            dumpNative(path)
+        }
+    }
+
     override fun onConfigure(): Boolean {
-        TODO("Not yet implemented")
+        addHookThreadNameNative(hookThreadName.toArray(Array(0) { "" }))
+        enableQuickenNative(enableQuicken)
+        enableTracePthreadReleaseNative(enableTracePthreadRelease)
+        return true
     }
 
     override fun onHook(enableDebug: Boolean): Boolean {
-        TODO("Not yet implemented")
+        if (!hookInstalled) {
+            installHooksNative(enableDebug)
+            hookInstalled = true
+        }
+        return true
     }
+
+    @Keep
+    private external fun addHookThreadNameNative(threadNames: Array<String>)
+
+    @Keep
+    private external fun enableQuickenNative(enableQuick: Boolean)
+
+    @Keep
+    private external fun enableLoggerNative(enableLogger: Boolean)
+
+    @Keep
+    private external fun enableTracePthreadReleaseNative(enableTrace: Boolean)
+
+    @Keep
+    private external fun installHooksNative(enableDebug: Boolean)
+
+    private external fun dumpNative(path: String)
+
 }

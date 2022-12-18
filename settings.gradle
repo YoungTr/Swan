@@ -17,7 +17,6 @@ dependencyResolutionManagement {
 rootProject.name = "Swan"
 include ':app'
 include ':swan-io-canary'
-include ':swan-android-common'
 include ':swan-android-lib'
 include ':swan-resource-canary:swan-resource-canary-android'
 
@@ -29,6 +28,7 @@ include ':swan-third-libs:shark-libs:shark-graph'
 include ':swan-third-libs:shark-libs:shark-hprof'
 include ':swan-third-libs:shark-libs:shark-log'
 include ':swan-third-libs:xdl'
+include ':swan-third-libs:matrix-backtrace'
 include ':swan-gradle-plugin'
 include ':swan-trace-canary'
 include ':swan-commons'
