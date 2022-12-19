@@ -1,7 +1,6 @@
 package com.bomber.swan.hooks
 
 import com.bomber.swan.util.SwanLog
-import com.swan.bomber.hooks.BuildConfig
 
 class HookManager {
 
@@ -62,13 +61,21 @@ class HookManager {
                     System.loadLibrary(libName)
                 } catch (e: Throwable) {
                     SwanLog.printErrStackTrace(TAG, e, "")
-                    SwanLog.e(TAG, "Fail to load native library for %s, skip next steps.", hook::class.java.name)
+                    SwanLog.e(
+                        TAG,
+                        "Fail to load native library for %s, skip next steps.",
+                        hook::class.java.name
+                    )
                     hook.status = AbsHook.Status.COMMIT_FAIL_ON_LOAD_LIB
                 }
             }
             for (hook in pendingHooks) {
                 if (hook.status != AbsHook.Status.UN_COMMIT) {
-                    SwanLog.e(TAG, "%s has failed steps before, skip calling onConfigure on it.", hook::class.java)
+                    SwanLog.e(
+                        TAG,
+                        "%s has failed steps before, skip calling onConfigure on it.",
+                        hook::class.java
+                    )
                     continue
                 }
                 if (!hook.onConfigure()) {
@@ -78,7 +85,11 @@ class HookManager {
             }
             for (hook in pendingHooks) {
                 if (hook.status != AbsHook.Status.UN_COMMIT) {
-                    SwanLog.e(TAG, "%s has failed steps before, skip calling onHook on it.", hook::class.java.name)
+                    SwanLog.e(
+                        TAG,
+                        "%s has failed steps before, skip calling onHook on it.",
+                        hook::class.java.name
+                    )
                     continue
                 }
                 if (hook.onHook(debug)) {

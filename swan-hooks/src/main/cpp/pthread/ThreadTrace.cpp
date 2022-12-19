@@ -123,6 +123,10 @@ void thread_trace::pthread_dump_json(const char *path) {
 
 }
 
+static void on_pthread_exit(void *specific) {
+
+}
+
 void thread_trace::enable_quicken_unwind(const bool enable) {
 
 }

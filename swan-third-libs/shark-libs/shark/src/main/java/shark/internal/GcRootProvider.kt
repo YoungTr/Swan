@@ -1,20 +1,9 @@
 package shark.internal
 
-import shark.GcRoot
-import shark.GcRoot.JavaFrame
-import shark.GcRoot.JniGlobal
-import shark.GcRoot.ThreadObject
-import shark.HeapGraph
-import shark.HeapObject
-import shark.HeapObject.HeapClass
-import shark.HeapObject.HeapInstance
-import shark.HeapObject.HeapObjectArray
-import shark.HeapObject.HeapPrimitiveArray
-import shark.IgnoredReferenceMatcher
-import shark.LibraryLeakReferenceMatcher
-import shark.ReferenceMatcher
+import shark.*
+import shark.GcRoot.*
+import shark.HeapObject.*
 import shark.ReferencePattern.NativeGlobalVariablePattern
-import shark.filterFor
 
 /**
  * Extracted from PathFinder, this should eventually be part of public API surface
@@ -40,6 +29,7 @@ internal class GcRootProvider(
         is NativeGlobalVariablePattern -> {
           jniGlobals[pattern.className] = referenceMatcher
         }
+        else -> {}
       }
     }
     this.jniGlobalReferenceMatchers = jniGlobals

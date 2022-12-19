@@ -1,15 +1,11 @@
 package shark.internal
 
-import shark.HeapGraph
-import shark.internal.ChainingInstanceReferenceReader.VirtualInstanceReferenceReader
+import shark.*
 import shark.HeapObject.HeapInstance
-import shark.IgnoredReferenceMatcher
-import shark.LibraryLeakReferenceMatcher
+import shark.ReferencePattern.JavaLocalPattern
+import shark.internal.ChainingInstanceReferenceReader.VirtualInstanceReferenceReader
 import shark.internal.Reference.LazyDetails
 import shark.internal.ReferenceLocationType.LOCAL
-import shark.ReferenceMatcher
-import shark.ReferencePattern.JavaLocalPattern
-import shark.filterFor
 
 internal class JavaLocalReferenceReader(
   val graph: HeapGraph,
@@ -32,6 +28,7 @@ internal class JavaLocalReferenceReader(
         is JavaLocalPattern -> {
           threadNames[pattern.threadName] = referenceMatcher
         }
+        else -> {}
       }
     }
     this.threadNameReferenceMatchers = threadNames

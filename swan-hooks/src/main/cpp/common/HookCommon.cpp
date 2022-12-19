@@ -20,7 +20,6 @@
 
 #include <jni.h>
 #include <sys/stat.h>
-#include <Backtrace.h>
 #include <xhook.h>
 #include "HookCommon.h"
 #include "Log.h"

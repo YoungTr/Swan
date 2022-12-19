@@ -1,50 +1,13 @@
 package shark.internal
 
-import shark.GcRoot
-import shark.HprofHeader
-import shark.HprofRecordReader
-import shark.HprofRecordTag
-import shark.HprofRecordTag.CLASS_DUMP
-import shark.HprofRecordTag.INSTANCE_DUMP
-import shark.HprofRecordTag.LOAD_CLASS
-import shark.HprofRecordTag.OBJECT_ARRAY_DUMP
-import shark.HprofRecordTag.PRIMITIVE_ARRAY_DUMP
-import shark.HprofRecordTag.ROOT_DEBUGGER
-import shark.HprofRecordTag.ROOT_FINALIZING
-import shark.HprofRecordTag.ROOT_INTERNED_STRING
-import shark.HprofRecordTag.ROOT_JAVA_FRAME
-import shark.HprofRecordTag.ROOT_JNI_GLOBAL
-import shark.HprofRecordTag.ROOT_JNI_LOCAL
-import shark.HprofRecordTag.ROOT_JNI_MONITOR
-import shark.HprofRecordTag.ROOT_MONITOR_USED
-import shark.HprofRecordTag.ROOT_NATIVE_STACK
-import shark.HprofRecordTag.ROOT_REFERENCE_CLEANUP
-import shark.HprofRecordTag.ROOT_STICKY_CLASS
-import shark.HprofRecordTag.ROOT_THREAD_BLOCK
-import shark.HprofRecordTag.ROOT_THREAD_OBJECT
-import shark.HprofRecordTag.ROOT_UNKNOWN
-import shark.HprofRecordTag.ROOT_UNREACHABLE
-import shark.HprofRecordTag.ROOT_VM_INTERNAL
-import shark.HprofRecordTag.STRING_IN_UTF8
+import shark.*
+import shark.HprofRecordTag.*
 import shark.HprofVersion.ANDROID
-import shark.OnHprofRecordTagListener
-import shark.PrimitiveType
 import shark.PrimitiveType.INT
-import shark.ProguardMapping
-import shark.StreamingHprofReader
-import shark.ValueHolder
-import shark.internal.IndexedObject.IndexedClass
-import shark.internal.IndexedObject.IndexedInstance
-import shark.internal.IndexedObject.IndexedObjectArray
-import shark.internal.IndexedObject.IndexedPrimitiveArray
-import shark.internal.hppc.IntObjectPair
-import shark.internal.hppc.LongLongScatterMap
-import shark.internal.hppc.LongObjectPair
-import shark.internal.hppc.LongObjectScatterMap
-import shark.internal.hppc.to
-import java.util.EnumSet
+import shark.internal.IndexedObject.*
+import shark.internal.hppc.*
+import java.util.*
 import kotlin.math.max
-import shark.internal.hppc.LongScatterSet
 
 /**
  * This class is not thread safe, should be used from a single thread.
@@ -608,6 +571,7 @@ internal class HprofInMemoryIndex private constructor(
               writeTruncatedLong(recordSize, bytesForPrimitiveArraySize)
             }
         }
+        else -> {}
       }
     }
 
@@ -704,6 +668,7 @@ internal class HprofInMemoryIndex private constructor(
             reader.skipPrimitiveArrayDumpRecord()
             maxPrimitiveArraySize = max(maxPrimitiveArraySize, reader.bytesRead - bytesReadStart)
           }
+          else -> {}
         }
       }
 
