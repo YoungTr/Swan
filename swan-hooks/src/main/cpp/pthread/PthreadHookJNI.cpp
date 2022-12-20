@@ -2,8 +2,7 @@
 // Created by YoungTr on 2022/12/17.
 //
 #include <jni.h>
-#include <Log.h>
-#include "Log.h"
+#include "../common/Log.h"
 #include "PthreadHook.h"
 #include "ThreadTrace.h"
 #include "PthreadHook.h"
@@ -34,7 +33,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_bomber_swan_hooks_pthread_PthreadHook_enableLoggerNative(JNIEnv *env, jobject thiz,
                                                                   jboolean enable_logger) {
-//    enable_hook_logger(enable_logger);
+    enable_hook_logger(enable_logger);
 }
 extern "C"
 JNIEXPORT void JNICALL

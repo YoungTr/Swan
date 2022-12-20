@@ -5,11 +5,11 @@
 
 #include <xhook.h>
 #include <HookCommon.h>
-#include <Log.h>
 #include <unistd.h>
 #include "PthreadHook.h"
 #include "ThreadTrace.h"
 #include "ThreadStackShink.h"
+#include "../common/Log.h"
 
 #define LOG_TAG "Matrix.PthreadHook"
 #define ORIGINAL_LIB "libc.so"
@@ -32,6 +32,9 @@ DECLARE_HOOK_ORIG(int, pthread_join, pthread_t, void**);
 
 DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *attr,
                 pthread_hook::pthread_routine_t start_routine, void *args) {
+
+    LOGD(LOG_TAG, "pthread_create");
+
     Dl_info callerInfo = {};
     bool callerInfoOk = true;
     if (0 == dladdr(__builtin_return_address(0), &callerInfo)) {
@@ -84,6 +87,7 @@ DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *a
 //
 //}
 DEFINE_HOOK_FUN(int, pthread_setname_np, pthread_t pthread, const char* name) {
+    LOGD(LOG_TAG, "pthread_setname_np");
     CALL_ORIGIN_FUNC_RET(int, ret, pthread_setname_np, pthread, name);
     if (LIKELY(ret == 0) && sThreadTraceEnabled) {
         thread_trace::handle_pthread_setname_np(pthread, name);

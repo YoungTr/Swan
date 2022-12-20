@@ -13,11 +13,14 @@ import com.bomber.swan.hooks.pthread.PthreadHook
 import com.tencent.matrix.backtrace.WarmUpReporter.ReportEvent
 import com.tencent.matrix.backtrace.WeChatBacktrace
 import sample.com.bomber.swan.databinding.ActivityResourceBinding
+import java.lang.Thread.sleep
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class ResourceActivity : AppCompatActivity() {
 
     private var hasPrepared = false
+
+    private var quite = false
 
     companion object {
         private const val TAG = "ResourceActivity"
@@ -61,12 +64,18 @@ class ResourceActivity : AppCompatActivity() {
             intMap["Int:$it"] = it
         }
 
-        bitmap = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
+        bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
 
         activityLeak = this
 
         binding.text.setOnClickListener {
-
+            Thread {
+                while (!quite) {
+                    sleep(3000)
+                    Log.d(TAG, "Thread: ${Thread.currentThread().name}")
+                }
+            }.start()
+            nativeThread()
         }
 
         binding.threadHook.setOnClickListener {
@@ -121,10 +130,17 @@ class ResourceActivity : AppCompatActivity() {
         try {
             HookManager.INSTANCE
                 .addHook(PthreadHook.INSTANCE)
-
+                .commitHooks()
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        quite = true
+    }
+
+    private external fun nativeThread()
 }

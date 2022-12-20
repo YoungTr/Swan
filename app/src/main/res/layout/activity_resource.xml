@@ -9,8 +9,7 @@
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/big_img"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@mipmap/cat" />
+        android:layout_height="match_parent" />
 
     <TextView
         android:id="@+id/text"
@@ -18,9 +17,9 @@
         android:layout_height="wrap_content"
         android:background="#10ffffff"
         android:gravity="center"
-        android:text="@string/app_name"
-        android:textColor="#ffffff"
-        android:textSize="16sp"
+        android:text="启动一个线程"
+        android:textColor="#000000"
+        android:textSize="32sp"
         app:layout_constraintBottom_toTopOf="@id/thread_hook"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -33,8 +32,8 @@
         android:background="#10ffffff"
         android:gravity="center"
         android:text="线程监控"
-        android:textColor="#ffffff"
-        android:textSize="16sp"
+        android:textColor="#000000"
+        android:textSize="32sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

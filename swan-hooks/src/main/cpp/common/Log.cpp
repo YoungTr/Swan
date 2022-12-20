@@ -34,7 +34,7 @@ int flogger0(FILE *fp, const char *fmt, ...) {
 
 extern "C" internal_logger_func logger_func();
 
-static bool enable_hook_logger_ = false;
+static bool enable_hook_logger_ = true;
 
 extern "C"
 void enable_hook_logger(bool enable) {

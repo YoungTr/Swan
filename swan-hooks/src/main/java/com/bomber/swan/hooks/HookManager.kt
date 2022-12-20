@@ -1,5 +1,6 @@
 package com.bomber.swan.hooks
 
+import androidx.annotation.Keep
 import com.bomber.swan.util.SwanLog
 
 class HookManager {
@@ -9,6 +10,28 @@ class HookManager {
 
         private const val HOOK_COMMON_LIB_NAME = "swan-hookcommon"
         private const val TAG = "Swan.HookManager"
+
+        @Keep
+        @JvmStatic
+        fun getStack(): String {
+            return stackTraceToString(Thread.currentThread().stackTrace)
+        }
+
+        private fun stackTraceToString(arr: Array<StackTraceElement>?): String {
+            if (arr == null) {
+                return ""
+            }
+            val sb = StringBuilder()
+            for (stackTraceElement in arr) {
+                val className = stackTraceElement.className
+                // remove unused stacks
+                if (className.contains("java.lang.Thread")) {
+                    continue
+                }
+                sb.append(stackTraceElement).append(';')
+            }
+            return sb.toString()
+        }
     }
 
     @Volatile
@@ -52,23 +75,19 @@ class HookManager {
 
     private fun commitHooksLocked() {
         synchronized(pendingHooks) {
-            for (hook in pendingHooks) {
-                val libName = hook.getNativeLibraryName()
-                if (libName.isEmpty()) {
-                    continue
-                }
-                try {
-                    System.loadLibrary(libName)
-                } catch (e: Throwable) {
-                    SwanLog.printErrStackTrace(TAG, e, "")
-                    SwanLog.e(
-                        TAG,
-                        "Fail to load native library for %s, skip next steps.",
-                        hook::class.java.name
-                    )
-                    hook.status = AbsHook.Status.COMMIT_FAIL_ON_LOAD_LIB
-                }
-            }
+//            for (hook in pendingHooks) {
+//                val libName = hook.getNativeLibraryName()
+//                if (libName.isEmpty()) {
+//                    continue
+//                }
+//                try {
+//                    System.loadLibrary(libName)
+//                } catch (e: Throwable) {
+//                    SwanLog.printErrStackTrace(TAG, e, "")
+//                    SwanLog.e(TAG, "Fail to load native library for %s, skip next steps.", hook::class.java.name)
+//                    hook.status = AbsHook.Status.COMMIT_FAIL_ON_LOAD_LIB
+//                }
+//            }
             for (hook in pendingHooks) {
                 if (hook.status != AbsHook.Status.UN_COMMIT) {
                     SwanLog.e(

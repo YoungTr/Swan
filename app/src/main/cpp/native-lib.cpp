@@ -2,12 +2,16 @@
 #include <string>
 #include <sys/auxv.h>
 #include <link.h>
+#include <pthread.h>
+#include <unistd.h>
 #include "sHook.h"
 #include "log.h"
 #include "swan_link.h"
 
 extern __attribute((weak)) unsigned long int getauxval(unsigned long int);
-extern __attribute((weak)) int dl_iterate_phdr(int (*)(struct dl_phdr_info *, size_t, void *), void *);
+
+extern __attribute((weak)) int
+dl_iterate_phdr(int (*)(struct dl_phdr_info *, size_t, void *), void *);
 
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -20,7 +24,7 @@ Java_com_bomber_swan_sample_MainActivity_stringFromJNI(
 extern "C"
 JNIEXPORT void JNICALL
 Java_sample_com_bomber_swan_hook_HookActivity_nativeHook(JNIEnv *env, jobject thiz, jstring path) {
-    uintptr_t base = (uintptr_t)getauxval(AT_BASE);
+    uintptr_t base = (uintptr_t) getauxval(AT_BASE);
     LOGD("link base: %x", base);
 
 
@@ -49,3 +53,19 @@ Java_sample_com_bomber_swan_hook_HookActivity_nativeWrite(JNIEnv *env, jobject t
 //        return;
 //    }
 }
+
+static void thread_test(int data) {
+    while (1) {
+        sleep(3);
+        LOGD("thread_test-%d", data);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_sample_com_bomber_swan_resource_ResourceActivity_nativeThread(JNIEnv *env, jobject thiz) {
+    for (int i = 0; i < 5; ++i) {
+        pthread_t p;
+        int ret = pthread_create(&p, nullptr, reinterpret_cast<void *(*)(void *)>(thread_test), (void *)i);
+        LOGD("thread_create: %d", ret);
+    }}

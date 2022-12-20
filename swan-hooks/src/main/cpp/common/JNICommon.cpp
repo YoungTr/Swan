@@ -59,7 +59,7 @@ static jmethodID GetStaticMethodId(JNIEnv *env, jclass clazz, const char *name, 
 
 
 JNIEXPORT jboolean JNICALL
-Java_com_swan_bomber_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jobject thiz,
+Java_com_bomber_swan_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jobject thiz,
                                                                  jboolean enable_debug) {
     std::lock_guard<std::mutex> prehookInitLock(s_prehook_init_mutex);
 
@@ -68,8 +68,9 @@ Java_com_swan_bomber_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jo
         return true;
     }
 
-    m_class_HookManager = FindClass(env, "com/swan/bomber/hooks/HookManager", true);
+    m_class_HookManager = FindClass(env, "com/bomber/swan/hooks/HookManager", true);
     if (nullptr == m_class_HookManager) {
+        LOGE(TAG, "Not find class HookManager");
         return false;
     }
     m_class_HookManager = reinterpret_cast<jclass>(env->NewGlobalRef(m_class_HookManager));
@@ -84,6 +85,7 @@ Java_com_swan_bomber_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jo
     m_method_getStack = GetStaticMethodId(env, m_class_HookManager, "getStack",
                                           "()Ljava/lang/String;");
     if (nullptr == m_method_getStack) {
+        LOGE(TAG, "Not find method getStack");
         return false;
     }
 
@@ -103,7 +105,7 @@ Java_com_swan_bomber_hooks_HookManager_doPreHookInitializeNative(JNIEnv *env, jo
 extern "C"
 JNIEXPORT void JNICALL
 
-Java_com_swan_bomber_hooks_HookManager_doFinishInitializeNative(JNIEnv *env, jobject thiz,
+Java_com_bomber_swan_hooks_HookManager_doFinishInitializeNative(JNIEnv *env, jobject thiz,
                                                                 jboolean enable_debug) {
     std::lock_guard<std::mutex> finalInitLock(s_finalhook_init_mute);
     if (s_finalhook_initialized) {
@@ -117,7 +119,9 @@ Java_com_swan_bomber_hooks_HookManager_doFinishInitializeNative(JNIEnv *env, job
     xhook_enable_sigsegv_protection(enable_debug ? 1 : 0);
 
     int ret = xhook_refresh(0);
-    LOGE(TAG, "Fail to call xhook_refresh, ret: %d", ret);
+    if (0 != ret) {
+        LOGE(TAG, "Fail to call xhook_refresh, ret: %d", ret);
+    }
     s_finalhook_initialized = true;
 }
 
