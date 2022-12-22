@@ -135,10 +135,45 @@ void thread_trace::enable_trace_pthread_release(const bool enable) {
 
 }
 
+static inline void before_routine_start() {
+    LOGI(TAG, "before_routine_start");
+    std::unique_lock<std::mutex> routine_lock(m_subroutine_mutex);
+
+    pthread_t self_thread = pthread_self();
+
+    m_subroutine_cv.wait(routine_lock, [&self_thread] {
+        return m_pthread_routine_flags.count(self_thread);
+    });
+
+    LOGI(TAG, "before_routine_start: create ready, just continue, waiting count : %zu",
+         m_pthread_routine_flags.size());
+
+    m_pthread_routine_flags.erase(self_thread);
+}
+
+static void *pthread_routine_wrapper(void *arg) {
+    auto *specific = (char *) malloc(sizeof(char));
+    *specific = 'P';
+
+    pthread_setspecific(m_destructor_key, specific);
+
+    before_routine_start();
+
+    auto *args_wrapper = (thread_trace::routine_wrapper_t *) arg;
+    void *ret          = args_wrapper->origin_func(args_wrapper->origin_args);
+    free(args_wrapper);
+    return ret;
+}
+
 
 thread_trace::routine_wrapper_t *
 thread_trace::wrap_pthread_routine(pthread_hook::pthread_routine_t start_routine, void *args) {
-    return nullptr;
+    auto routine_wrapper = (thread_trace::routine_wrapper_t *) malloc(
+            sizeof(thread_trace::routine_wrapper_t));
+    routine_wrapper->wrapped_func = pthread_routine_wrapper;
+    routine_wrapper->origin_func  = start_routine;
+    routine_wrapper->origin_args  = args;
+    return routine_wrapper;
 }
 
 

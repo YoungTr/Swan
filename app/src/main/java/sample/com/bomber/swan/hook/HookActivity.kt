@@ -16,7 +16,7 @@ class HookActivity : AppCompatActivity() {
         setContentView(R.layout.activity_hook)
         classLoader?.apply {
             val loader = this as PathClassLoader
-            val path = loader.findLibrary("swan")
+            val path = loader.findLibrary("samplewan")
             Log.d(TAG, "lib swan path: $path")
             nativeHook(path)
         }

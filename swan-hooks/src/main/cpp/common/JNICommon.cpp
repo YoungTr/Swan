@@ -115,13 +115,13 @@ Java_com_bomber_swan_hooks_HookManager_doFinishInitializeNative(JNIEnv *env, job
 
     wechat_backtrace::notify_maps_changed();
 
-    xhook_enable_debug(enable_debug ? 1 : 0);
-    xhook_enable_sigsegv_protection(enable_debug ? 1 : 0);
-
-    int ret = xhook_refresh(0);
-    if (0 != ret) {
-        LOGE(TAG, "Fail to call xhook_refresh, ret: %d", ret);
-    }
+//    xhook_enable_debug(enable_debug ? 1 : 0);
+//    xhook_enable_sigsegv_protection(enable_debug ? 1 : 0);
+//
+//    int ret = xhook_refresh(0);
+//    if (0 != ret) {
+//        LOGE(TAG, "Fail to call xhook_refresh, ret: %d", ret);
+//    }
     s_finalhook_initialized = true;
 }
 

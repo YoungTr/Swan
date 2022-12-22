@@ -14,7 +14,7 @@
 #define LOG_TAG "Matrix.PthreadHook"
 #define ORIGINAL_LIB "libc.so"
 
-static volatile bool sThreadTraceEnabled = false;
+static volatile bool sThreadTraceEnabled = true;
 static volatile bool sThreadStackShrinkEnabled = false;
 
 DECLARE_HOOK_ORIG(int, pthread_create, pthread_t*, pthread_attr_t const*,
@@ -26,14 +26,30 @@ DECLARE_HOOK_ORIG(int, pthread_create, pthread_t*, pthread_attr_t const*,
 DECLARE_HOOK_ORIG(int, pthread_setname_np, pthread_t, const char*);
 
 DECLARE_HOOK_ORIG(int, pthread_detach, pthread_t);
+
 DECLARE_HOOK_ORIG(int, pthread_join, pthread_t, void**);
 
+
+int pthread_create_proxy(pthread_t *__pthread_ptr, pthread_attr_t const *__attr,
+                         void *(*__start_routine)(void *), void *data) {
+    LOGD(LOG_TAG, "pthread_create_proxy-----");
+
+    int (*p)(pthread_t *, const pthread_attr_t *, pthread_hook::pthread_routine_t,
+             void *) = ORIGINAL_FUNC_NAME(pthread_create);
+
+    LOGD(LOG_TAG, "ORIGINAL_FUNC_NAME: %d", (uintptr_t) p);
+
+    LOGD(LOG_TAG, "pthread_create: %d", (uintptr_t) pthread_create);
+
+
+    return pthread_create(__pthread_ptr, __attr, __start_routine, data);
+}
 
 
 DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *attr,
                 pthread_hook::pthread_routine_t start_routine, void *args) {
 
-    LOGD(LOG_TAG, "pthread_create");
+    LOGD(LOG_TAG, "pthread_create_proxy");
 
     Dl_info callerInfo = {};
     bool callerInfoOk = true;
@@ -42,8 +58,10 @@ DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *a
         callerInfoOk = false;
     }
 
+    LOGD(LOG_TAG, "name: %s", callerInfo.dli_fname);
+
     pthread_attr_t tmpAttr;
-    if (LIKELY( attr == nullptr)) {
+    if (LIKELY(attr == nullptr)) {
         int ret = pthread_attr_init(&tmpAttr);
         if (UNLIKELY(ret != 0)) {
             LOGE(LOG_TAG, "Fail to init new attr, ret: %d", ret);
@@ -64,6 +82,7 @@ DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *a
                              routine_wrapper->wrapped_func,
                              routine_wrapper);
         ret = tmpRet;
+        LOGD(LOG_TAG, "CALL_ORIGIN_FUNC_RET ret: %d", ret);
     } else {
         CALL_ORIGIN_FUNC_RET(int, tmpRet, pthread_create, pthread, &tmpAttr, start_routine, args);
         ret = tmpRet;
@@ -86,8 +105,8 @@ DEFINE_HOOK_FUN(int, pthread_create, pthread_t *pthread, pthread_attr_t const *a
 //int h_pthread_setname_np(pthread_t pthread, const char *name) {
 //
 //}
-DEFINE_HOOK_FUN(int, pthread_setname_np, pthread_t pthread, const char* name) {
-    LOGD(LOG_TAG, "pthread_setname_np");
+DEFINE_HOOK_FUN(int, pthread_setname_np, pthread_t pthread, const char *name) {
+    LOGD(LOG_TAG, "pthread_setname_np_proxy");
     CALL_ORIGIN_FUNC_RET(int, ret, pthread_setname_np, pthread, name);
     if (LIKELY(ret == 0) && sThreadTraceEnabled) {
         thread_trace::handle_pthread_setname_np(pthread, name);
@@ -97,7 +116,7 @@ DEFINE_HOOK_FUN(int, pthread_setname_np, pthread_t pthread, const char* name) {
 
 DEFINE_HOOK_FUN(int, pthread_detach, pthread_t pthread) {
     CALL_ORIGIN_FUNC_RET(int, ret, pthread_detach, pthread);
-    LOGD(LOG_TAG, "pthread_detach : %d", ret);
+    LOGD(LOG_TAG, "pthread_detach_proxy : %d", ret);
     if (LIKELY(ret == 0) && sThreadTraceEnabled) {
         thread_trace::handle_pthread_release(pthread);
     }
@@ -105,9 +124,9 @@ DEFINE_HOOK_FUN(int, pthread_detach, pthread_t pthread) {
 }
 
 
-DEFINE_HOOK_FUN(int, pthread_join, pthread_t pthread, void** return_value_ptr) {
+DEFINE_HOOK_FUN(int, pthread_join, pthread_t pthread, void **return_value_ptr) {
     CALL_ORIGIN_FUNC_RET(int, ret, pthread_join, pthread, return_value_ptr);
-    LOGD(LOG_TAG, "pthread_join : %d", ret);
+    LOGD(LOG_TAG, "pthread_join_proxy : %d", ret);
     if (LIKELY(ret == 0) && sThreadTraceEnabled) {
         thread_trace::handle_pthread_release(pthread);
     }
@@ -126,8 +145,9 @@ namespace pthread_hook {
         sThreadStackShrinkEnabled = enabled;
     }
 
-    void SetThreadStackShrinkIgnoredCreatorSoPatterns(const char** patterns, size_t pattern_count) {
-        LOGD(LOG_TAG, "[*] Calling SetThreadStackShrinkIgnoredCreatorSoPatterns, patterns: %p, count: %d",
+    void SetThreadStackShrinkIgnoredCreatorSoPatterns(const char **patterns, size_t pattern_count) {
+        LOGD(LOG_TAG,
+             "[*] Calling SetThreadStackShrinkIgnoredCreatorSoPatterns, patterns: %p, count: %d",
              patterns, pattern_count);
         thread_stack_shink::SetIgnoredCreatorSoPatterns(patterns, pattern_count);
     }
@@ -154,7 +174,8 @@ namespace pthread_hook {
         {
             xhook_register(".*/.*\\.so$",
                            "pthread_create",
-                           (void *) HANDLER_FUNC_NAME(pthread_create),
+                           (void *)pthread_create_proxy,
+//                           (void *) HANDLER_FUNC_NAME(pthread_create),
                            nullptr);
             xhook_register(".*/.*\\.so$",
                            "pthread_setname_np",
@@ -169,11 +190,23 @@ namespace pthread_hook {
                            (void *) HANDLER_FUNC_NAME(pthread_join),
                            nullptr);
 
+            xhook_ignore(".*/libswan.*\\.so$", "pthread_create");
+            xhook_ignore(".*/libswan.*\\.so$", "pthread_setname_np");
+            xhook_ignore(".*/libswan.*\\.so$", "pthread_detach");
+            xhook_ignore(".*/libswan.*\\.so$", "pthread_join");
+            xhook_ignore(".*libwechatbacktrace\\.so$", "pthread_create");
+            xhook_ignore(".*libwechatbacktrace\\.so$", "pthread_setname_np");
+            xhook_ignore(".*libwechatbacktrace\\.so$", "pthread_detach");
+            xhook_ignore(".*libwechatbacktrace\\.so$", "pthread_join");
+
             xhook_enable_debug(enable_debug ? 1 : 0);
             xhook_enable_sigsegv_protection(0);
-            xhook_refresh(0);
+            int ret = xhook_refresh(0);
+            LOGI(LOG_TAG, "call xhook_refresh, ret: %d", ret);
+            if (0 != ret) {
+                LOGE(LOG_TAG, "Fail to call xhook_refresh, ret: %d", ret);
+            }
         }
-
 
     }
 }

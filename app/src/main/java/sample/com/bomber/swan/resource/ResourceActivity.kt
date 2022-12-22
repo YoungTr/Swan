@@ -79,14 +79,19 @@ class ResourceActivity : AppCompatActivity() {
         }
 
         binding.threadHook.setOnClickListener {
-            if (hasPrepared) {
-                return@setOnClickListener
-            }
-            hasPrepared = true
-            backtraceInit()
-            threadHook()
+            doHook()
         }
 
+//        doHook()
+    }
+
+    private fun doHook() {
+        if (hasPrepared) {
+            return
+        }
+        hasPrepared = true
+        backtraceInit()
+        threadHook()
     }
 
     private fun backtraceInit() {

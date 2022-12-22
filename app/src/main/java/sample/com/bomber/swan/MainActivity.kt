@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         // Used to load the 'swan' library on application startup.
         init {
-            System.loadLibrary("swan")
+            System.loadLibrary("samplewan")
         }
     }
 }

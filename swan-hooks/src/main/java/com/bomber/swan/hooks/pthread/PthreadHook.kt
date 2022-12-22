@@ -13,12 +13,12 @@ class PthreadHook private constructor() : AbsHook() {
     }
 
     val hookThreadName = HashSet<String>()
-    var enableQuicken = false
-    var enableLog = false
+    var enableQuicken = true
+    var enableLog = true
     var configured = false
-    var threadTraceEnable = false
+    var threadTraceEnable = true
     var hookInstalled = false
-    var enableTracePthreadRelease = false
+    var enableTracePthreadRelease = true
 
 
     override fun getNativeLibraryName(): String {
@@ -36,6 +36,7 @@ class PthreadHook private constructor() : AbsHook() {
         addHookThreadNameNative(hookThreadName.toArray(Array(0) { "" }))
         enableQuickenNative(enableQuicken)
         enableTracePthreadReleaseNative(enableTracePthreadRelease)
+        enableLoggerNative(enableLog)
         return true
     }
 
