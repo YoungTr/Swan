@@ -64,7 +64,7 @@ static void thread_test(int data) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_sample_com_bomber_swan_resource_ResourceActivity_nativeThread(JNIEnv *env, jobject thiz) {
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 1; ++i) {
         pthread_t p;
         int ret = pthread_create(&p, nullptr, reinterpret_cast<void *(*)(void *)>(thread_test), (void *)i);
         LOGD("thread_create: %d", ret);

@@ -41,8 +41,11 @@ int pthread_create_proxy(pthread_t *__pthread_ptr, pthread_attr_t const *__attr,
 
     LOGD(LOG_TAG, "pthread_create: %d", (uintptr_t) pthread_create);
 
+    CALL_ORIGIN_FUNC_RET(int, tmpRet, pthread_create, __pthread_ptr, __attr, __start_routine, data);
 
-    return pthread_create(__pthread_ptr, __attr, __start_routine, data);
+    return tmpRet;
+
+//    return pthread_create(__pthread_ptr, __attr, __start_routine, data);
 }
 
 
@@ -174,8 +177,8 @@ namespace pthread_hook {
         {
             xhook_register(".*/.*\\.so$",
                            "pthread_create",
-                           (void *)pthread_create_proxy,
-//                           (void *) HANDLER_FUNC_NAME(pthread_create),
+//                           (void *)pthread_create_proxy,
+                           (void *) HANDLER_FUNC_NAME(pthread_create),
                            nullptr);
             xhook_register(".*/.*\\.so$",
                            "pthread_setname_np",

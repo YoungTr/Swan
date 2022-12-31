@@ -6,10 +6,11 @@
 #include <mutex>
 #include <map>
 #include <set>
-#include <Log.h>
+#include "../common/Log.h"
 #include "Backtrace.h"
 #include "ThreadTrace.h"
 #include <ReentrantPrevention.h>
+#include "HookCommon.h"
 
 
 #define ORIGINAL_LIB "libc.so"
@@ -89,6 +90,17 @@ static std::condition_variable m_subroutine_cv;
 
 static std::set<pthread_t> m_pthread_routine_flags;
 
+static void erase_meta(std::map<pthread_t, pthread_meta_t> &metas, pthread_t &pthread, pthread_meta_t &meta) {
+    free(meta.thread_name);
+
+    char *java_stacktrace = meta.java_stacktrace.load(std::memory_order_acquire);
+    if (java_stacktrace) {
+        free(java_stacktrace);
+    }
+
+    metas.erase(pthread);
+}
+
 static void on_pthread_exit(void *specific);
 
 
@@ -123,7 +135,44 @@ void thread_trace::pthread_dump_json(const char *path) {
 
 }
 
+static void notify_routine(const pthread_t pthread) {
+    std::lock_guard<std::mutex> routine_lock(m_subroutine_mutex);
+
+    m_pthread_routine_flags.emplace(pthread);
+    LOGD(TAG, "notify waiting count : %zu", m_pthread_routine_flags.size());
+
+    m_subroutine_cv.notify_all();
+}
+
 static void on_pthread_exit(void *specific) {
+    LOGD(TAG, "on_pthread_exit");
+    if (specific) {
+        free(specific);
+    }
+
+    pthread_t exiting_thread = pthread_self();
+    if (!m_pthread_metas.count(exiting_thread)) {
+        LOGD(TAG, "on_pthread_exit: thread not found");
+        return;
+    }
+
+    pthread_meta_t &meta = m_pthread_metas.at(exiting_thread);
+    m_filtered_pthreads.erase(exiting_thread);
+
+    LOGD(TAG, "gonna remove thread {%ld, %s, %d}", exiting_thread, meta.thread_name, meta.tid);
+    pthread_attr_t attr;
+    pthread_getattr_np(exiting_thread, &attr);
+    int state = PTHREAD_CREATE_JOINABLE;
+    pthread_attr_getdetachstate(&attr, &state);
+
+    if (m_trace_pthread_release && state != PTHREAD_CREATE_DETACHED) {
+        LOGD(TAG, "just mark exited");
+        meta.exited = true;
+    } else {
+        LOGD(TAG, "real removed");
+        erase_meta(m_pthread_metas, exiting_thread, meta);
+    }
+
 
 }
 
@@ -138,6 +187,8 @@ void thread_trace::enable_trace_pthread_release(const bool enable) {
 static inline void before_routine_start() {
     LOGI(TAG, "before_routine_start");
     std::unique_lock<std::mutex> routine_lock(m_subroutine_mutex);
+    LOGI(TAG, "before_routine_start lock");
+
 
     pthread_t self_thread = pthread_self();
 
@@ -152,6 +203,8 @@ static inline void before_routine_start() {
 }
 
 static void *pthread_routine_wrapper(void *arg) {
+    LOGI(TAG, "pthread_routine_wrapper");
+
     auto *specific = (char *) malloc(sizeof(char));
     *specific = 'P';
 
@@ -177,7 +230,54 @@ thread_trace::wrap_pthread_routine(pthread_hook::pthread_routine_t start_routine
 }
 
 
-void thread_trace::handle_pthread_create(const pthread_t pthread) {}
+void thread_trace::handle_pthread_create(const pthread_t pthread) {
+    LOGD(TAG, "handle_pthread_create");
+    const char *arch =
+#ifdef __aarch64__
+            "aarch64";
+#elif defined __arm__
+    "arm";
+#endif
+    LOGD(TAG, "+++++++ on_pthread_create, %s", arch);
+
+    pid_t tid = pthread_gettid_np(pthread);
+
+    if (!rp_acquire()) {
+        LOGD(TAG, "reentrant!!!");
+        notify_routine(pthread);
+        return;
+    }
+
+    if (!m_quicken_unwind) {
+        const size_t BUF_SIZE         = 1024;
+        char         *java_stacktrace = static_cast<char *>(malloc(BUF_SIZE));
+        strncpy(java_stacktrace, "(init stacktrace)", BUF_SIZE);
+        if (m_java_stacktrace_mutex.try_lock_for(std::chrono::milliseconds(100))) {
+            if (java_stacktrace) {
+                get_java_stacktrace(java_stacktrace, BUF_SIZE);
+            }
+            m_java_stacktrace_mutex.unlock();
+        } else {
+            LOGE(TAG, "maybe reentrant!");
+        }
+
+        LOGD(TAG, "parent_tid: %d -> tid: %d", pthread_gettid_np(pthread_self()), tid);
+//        bool recorded = on_pthread_create_locked(pthread, java_stacktrace, false, tid);
+        bool recorded = true;
+
+        if (!recorded && java_stacktrace) {
+            free(java_stacktrace);
+        }
+    } else {
+        LOGD(TAG, "parent_tid: %d -> tid: %d", pthread_gettid_np(pthread_self()), tid);
+//        on_pthread_create_locked(pthread, nullptr, true, tid);
+    }
+
+//
+    rp_release();
+    notify_routine(pthread);
+    LOGD(TAG, "------ on_pthread_create end");
+}
 
 void thread_trace::handle_pthread_setname_np(pthread_t pthread, const char *name) {}
 
